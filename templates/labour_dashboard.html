@@ -3,16 +3,25 @@
 
 <h2>Labour Dashboard</h2>
 
-<table border="1">
-<tr><th>Labour</th><th>Sadaram</th><th>Paid</th></tr>
+<table>
+    <tr>
+        <th>Labour Group</th>
+        <th>Sadaram Work</th>
+        <th>Advance Taken</th>
+        <th>Payments Done</th>
+        <th>Balance To Pay</th>
+    </tr>
 
-{% for r in rows %}
-<tr>
-<td>{{r[0]}}</td>
-<td>{{r[1]}}</td>
-<td>{{r[2]}}</td>
-</tr>
-{% endfor %}
+    {% for r in rows %}
+    <tr>
+        <td>{{ r[0] }}</td>
+        <td>{{ "%.2f"|format(r[1]) }}</td>
+        <td>{{ "%.2f"|format(r[2]) }}</td>
+        <td>{{ "%.2f"|format(r[3]) }}</td>
+        <td>{{ "%.2f"|format(r[4]) }}</td>
+    </tr>
+    {% endfor %}
+
 </table>
 
 {% endblock %}
