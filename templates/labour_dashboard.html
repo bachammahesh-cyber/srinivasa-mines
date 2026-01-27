@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Labour Dashboard</h2>
+
+<table border="1">
+<tr><th>Labour</th><th>Sadaram</th><th>Paid</th></tr>
+
+{% for r in rows %}
+<tr>
+<td>{{r[0]}}</td>
+<td>{{r[1]}}</td>
+<td>{{r[2]}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

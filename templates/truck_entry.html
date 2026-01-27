@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Truck Entry</h2>
+
+<form method="POST">
+
+    <label>Labour Group</label>
+    <select name="labour" required>
+        <option value="">Select Labour</option>
+        <option value="SV">Sivanna (SV)</option>
+        <option value="KP">Kupendra (KP)</option>
+        <option value="LK">Lakshmanna (LK)</option>
+        <option value="KD">Kondayya (KD)</option>
+    </select>
+
+    <label>Supervisor</label>
+    <select name="supervisor" required>
+        <option value="BALESH">BALESH</option>
+        <option value="ELISHA">ELISHA</option>
+    </select>
+
+    <input type="text" name="vehicle" placeholder="Vehicle Number" required>
+    <input type="text" name="buyer" placeholder="Buyer Name" required>
+
+    <label>Stone Size</label>
+    <select name="stone_size" required>
+        <option value="4">2 x 2 (4 ft)</option>
+        <option value="6">3 x 2 (6 ft)</option>
+        <option value="8">4 x 2 (8 ft)</option>
+        <option value="10">5 x 2 (10 ft)</option>
+        <option value="12">6 x 2 (12 ft)</option>
+        <option value="14">7 x 2 (14 ft)</option>
+    </select>
+
+    <input type="number" name="pieces" placeholder="Number of Pieces" required>
+    <input type="number" step="0.01" name="rate" placeholder="Rate per Sadaram" required>
+    <input type="number" step="0.01" name="paid" placeholder="Paid Amount" required>
+
+    <button type="submit">Submit Truck Entry</button>
+
+</form>
+
+{% endblock %}

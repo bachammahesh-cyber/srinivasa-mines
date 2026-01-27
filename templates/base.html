@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Srinivasa Mines</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin:0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:#f3f4f6;
+        }
+
+        /* ===== TOP HEADING ===== */
+        .topbar {
+            background:#111827;
+            color:white;
+            padding:20px 25px;
+            text-align:center;
+        }
+
+        .topbar h1{
+            margin:0;
+            font-size:32px;
+            letter-spacing:1px;
+        }
+
+        /* ===== CONTENT AREA ===== */
+        .container {
+            padding:30px;
+            padding-bottom:90px; /* space for logout bar */
+        }
+
+        h2 {
+            margin-bottom:25px;
+            color:#111827;
+        }
+
+        /* ===== CARD GRID ===== */
+        .grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap:25px;
+        }
+
+        .card {
+            padding:30px 20px;
+            border-radius:12px;
+            color:white;
+            font-size:20px;
+            font-weight:600;
+            text-align:center;
+            cursor:pointer;
+            transition:0.3s;
+            text-decoration:none;
+        }
+
+        .card:hover {
+            transform:translateY(-6px);
+            box-shadow:0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .blue { background:linear-gradient(135deg,#3b82f6,#2563eb); }
+        .green { background:linear-gradient(135deg,#10b981,#059669); }
+        .purple { background:linear-gradient(135deg,#8b5cf6,#7c3aed); }
+        .orange { background:linear-gradient(135deg,#f59e0b,#d97706); }
+        .pink { background:linear-gradient(135deg,#ec4899,#db2777); }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+            background:white;
+            border-radius:8px;
+            overflow:hidden;
+        }
+
+        th, td {
+            padding:10px;
+            border-bottom:1px solid #e5e7eb;
+            text-align:center;
+        }
+
+        th {
+            background:#111827;
+            color:white;
+        }
+
+        input, select, button {
+            padding:8px;
+            margin:6px 0;
+            border-radius:6px;
+            border:1px solid #ccc;
+            width:100%;
+        }
+
+        button {
+            background:#3b82f6;
+            color:white;
+            font-weight:600;
+            cursor:pointer;
+        }
+
+        /* ===== LOGOUT BAR ===== */
+        .logout-bar{
+            position:fixed;
+            bottom:0;
+            left:0;
+            width:100%;
+            background:#ef4444;
+            text-align:center;
+            padding:14px 0;
+        }
+
+        .logout-bar a{
+            color:white;
+            text-decoration:none;
+            font-size:18px;
+            font-weight:700;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <h1>SRINIVASA MINES DASHBOARD 🚚</h1>
+</div>
+
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+<div class="logout-bar">
+    <a href="/logout">Logout</a>
+</div>
+
+</body>
+</html>

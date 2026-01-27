@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Sales Report</h2>
+
+<table border="1">
+<tr>
+<th>Date</th><th>Vehicle</th><th>Buyer</th><th>Labour</th>
+<th>Sadaram</th><th>Total</th><th>Paid</th><th>Balance</th>
+</tr>
+
+{% for r in rows %}
+<tr>
+<td>{{r[0]}}</td>
+<td>{{r[1]}}</td>
+<td>{{r[2]}}</td>
+<td>{{r[3]}}</td>
+<td>{{r[4]}}</td>
+<td>{{r[5]}}</td>
+<td>{{r[6]}}</td>
+<td>{{r[7]}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}
