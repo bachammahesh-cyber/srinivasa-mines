@@ -99,6 +99,35 @@ def dashboard():
     return render_template("home.html")
 
 
+# ---------- TRUCK ENTRY ----------
+@app.route("/truck-entry", methods=["GET", "POST"])
+@login_required
+def truck_entry():
+    if request.method == "POST":
+        conn = get_db()
+        c = conn.cursor()
+
+        date = datetime.now().strftime("%Y-%m-%d")
+        vehicle = request.form["vehicle"]
+        buyer = request.form["buyer"]
+        labour = request.form["labour"]
+        sadaram = float(request.form["sadaram"])
+        total = float(request.form["total"])
+        paid = float(request.form["paid"])
+        balance = total - paid
+
+        c.execute("""
+        INSERT INTO truck_sales VALUES (?,?,?,?,?,?,?,?)
+        """, (date, vehicle, buyer, labour, sadaram, total, paid, balance))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/dashboard")
+
+    return render_template("truck_entry.html")
+
+
 # ---------- PAY LABOUR ----------
 @app.route("/pay-labour", methods=["GET", "POST"])
 @login_required
@@ -122,6 +151,39 @@ def pay_labour():
         return redirect("/dashboard")
 
     return render_template("pay_labour.html")
+
+
+# ---------- SALES REPORT ----------
+@app.route("/sales-report")
+@login_required
+def sales_report():
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM truck_sales ORDER BY date DESC")
+    rows = c.fetchall()
+
+    conn.close()
+    return render_template("sales_report.html", rows=rows)
+
+
+# ---------- CREDIT REPORT ----------
+@app.route("/credit-report")
+@login_required
+def credit_report():
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT date, vehicle_no, buyer_name, balance
+        FROM truck_sales
+        WHERE balance > 0
+        ORDER BY date ASC
+    """)
+    rows = c.fetchall()
+
+    conn.close()
+    return render_template("credit_report.html", rows=rows)
 
 
 # ---------- LABOUR DASHBOARD ----------
