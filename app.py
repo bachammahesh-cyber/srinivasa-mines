@@ -227,18 +227,27 @@ def labour_details(code):
 def buyer_dashboard():
     return render_template("buyer_dashboard.html")
 
-
 @app.route("/receive-buyer-payment", methods=["GET", "POST"])
 @login_required
 def receive_buyer_payment():
-    if request.method == "POST":
-        conn = get_db()
-        c = conn.cursor()
+    conn = get_db()
+    c = conn.cursor()
 
+    # Get buyers who still have balance
+    c.execute("""
+        SELECT buyer_name, SUM(balance) as due
+        FROM truck_sales
+        WHERE balance > 0
+        GROUP BY buyer_name
+        ORDER BY buyer_name
+    """)
+    buyers = c.fetchall()
+
+    if request.method == "POST":
         buyer = request.form["buyer"]
         amount = float(request.form["amount"])
 
-        # reduce balance from oldest credits
+        # Reduce from oldest credits
         c.execute("""
             SELECT date, balance
             FROM truck_sales
@@ -267,10 +276,10 @@ def receive_buyer_payment():
 
         conn.commit()
         conn.close()
-
         return redirect("/buyer-dashboard")
 
-    return render_template("receive_buyer_payment.html")
+    conn.close()
+    return render_template("receive_buyer_payment.html", buyers=buyers)
 
 
 # ---------------- PORT ----------------

@@ -1,24 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:20px;">💵 Receive Buyer Payment</h2>
+<h2 style="margin-bottom:20px;">💰 Receive Buyer Payment</h2>
 
 <form method="POST">
 
-    <label>Buyer</label>
-    <select name="buyer" required>
+    <label style="font-weight:600;">Buyer</label>
+    <select name="buyer" required style="width:100%;padding:10px;margin-bottom:15px;">
         <option value="">Select Buyer</option>
         {% for b in buyers %}
-        <option value="{{ b[0] }}">
-            {{ b[0] }} (Due: {{ "%.2f"|format(b[1]) }})
-        </option>
+            <option value="{{ b[0] }}">
+                {{ b[0] }} — Due: ₹{{ "%.2f"|format(b[1]) }}
+            </option>
         {% endfor %}
     </select>
 
-    <label>Amount Received</label>
-    <input type="number" step="0.01" name="amount" required>
+    <label style="font-weight:600;">Amount Received</label>
+    <input type="number" step="0.01" name="amount" required
+           style="width:100%;padding:10px;margin-bottom:20px;">
 
-    <button type="submit">Submit Payment</button>
+    <button type="submit"
+            style="background:#2563eb;color:white;padding:12px 20px;
+                   border:none;border-radius:6px;font-weight:600;width:100%;">
+        Submit Payment
+    </button>
 
 </form>
 
