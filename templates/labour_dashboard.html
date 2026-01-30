@@ -1,27 +1,45 @@
-{% extends "base.html" %}
-{% block content %}
+@app.route("/labour-dashboard")
+@login_required
+def labour_dashboard():
+    conn = get_db()
+    c = conn.cursor()
 
-<h2>Labour Dashboard</h2>
+    c.execute("SELECT DISTINCT labour_group_code FROM truck_sales")
+    groups = [g[0] for g in c.fetchall()]
 
-<table>
-    <tr>
-        <th>Labour Group</th>
-        <th>Sadaram Work</th>
-        <th>Advance Taken</th>
-        <th>Payments Done</th>
-        <th>Balance To Pay</th>
-    </tr>
+    result = []
 
-    {% for r in rows %}
-    <tr>
-        <td>{{ r[0] }}</td>
-        <td>{{ "%.2f"|format(r[1]) }}</td>
-        <td>{{ "%.2f"|format(r[2]) }}</td>
-        <td>{{ "%.2f"|format(r[3]) }}</td>
-        <td>{{ "%.2f"|format(r[4]) }}</td>
-    </tr>
-    {% endfor %}
+    for g in groups:
+        # Total sadaram work
+        c.execute("""
+            SELECT IFNULL(SUM(sadaram),0)
+            FROM truck_sales
+            WHERE labour_group_code=?
+        """, (g,))
+        sadaram = c.fetchone()[0]
 
-</table>
+        # 👇 Quarry rule
+        payable_feet = sadaram * 98
 
-{% endblock %}
+        # Advance taken
+        c.execute("""
+            SELECT IFNULL(SUM(amount),0)
+            FROM labour_payments
+            WHERE labour_group_code=? AND type='advance'
+        """, (g,))
+        advance = c.fetchone()[0]
+
+        # Payments done
+        c.execute("""
+            SELECT IFNULL(SUM(amount),0)
+            FROM labour_payments
+            WHERE labour_group_code=? AND type='payment'
+        """, (g,))
+        payment = c.fetchone()[0]
+
+        balance = payable_feet - advance - payment
+
+        result.append((g, payable_feet, advance, payment, balance))
+
+    conn.close()
+    return render_template("labour_dashboard.html", rows=result)
