@@ -242,10 +242,10 @@ def labour_details(code):
     c = conn.cursor()
 
     c.execute("""
-        SELECT date, vehicle_no, buyer_name, sadaram
+        SELECT "date", vehicle_no, buyer_name, sadaram
         FROM truck_sales
         WHERE labour_group_code=%s
-        ORDER BY date DESC
+        ORDER BY "date" DESC
     """, (code,))
 
     rows = c.fetchall()
