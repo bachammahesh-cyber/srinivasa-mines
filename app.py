@@ -130,7 +130,10 @@ def truck_entry():
         feet = pieces * stone_sizes[stone_code]
 
         # --------- 98 FEET RULE ----------
-        sadaram = (feet / 100) * 98
+        feet = pieces * stone_sizes[stone_code]
+
+        total_sadaram = feet / 100
+        sadaram = total_sadaram * 0.98
 
         total = sadaram * rate
         balance = total - paid
