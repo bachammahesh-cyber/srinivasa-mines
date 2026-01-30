@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:20px;">👷 Labour Dashboard</h2>
+<h2 style="margin-bottom:20px;">👷 Labour Sadaram Dashboard</h2>
 
 <div style="overflow-x:auto;">
 <table style="
@@ -15,37 +15,17 @@
 
     <tr style="background:#111827;color:white;font-size:16px;">
         <th style="padding:14px;">Labour Group</th>
-        <th style="padding:14px;">Payable Feet (98 Rule)</th>
-        <th style="padding:14px;">Advance Taken</th>
-        <th style="padding:14px;">Payments Done</th>
-        <th style="padding:14px;">Balance To Pay</th>
+        <th style="padding:14px;">Total Sadaram Produced (98 Rule)</th>
     </tr>
 
     {% for r in rows %}
     <tr style="text-align:center;font-weight:600;border-bottom:1px solid #e5e7eb;">
-
         <td style="padding:12px;color:#1f2937;">
             {{ r[0] }}
         </td>
-
-        <td style="padding:12px;color:#2563eb;font-size:17px;">
-            {{ "%.2f"|format(r[1]) }}
+        <td style="padding:12px;color:#2563eb;font-size:18px;">
+            {{ "%.3f"|format(r[1]) }}
         </td>
-
-        <td style="padding:12px;color:#f59e0b;">
-            {{ "%.2f"|format(r[2]) }}
-        </td>
-
-        <td style="padding:12px;color:#10b981;">
-            {{ "%.2f"|format(r[3]) }}
-        </td>
-
-        <td style="padding:12px;
-                   color:{% if r[4] > 0 %}#ef4444{% else %}#10b981{% endif %};
-                   font-size:18px;">
-            {{ "%.2f"|format(r[4]) }}
-        </td>
-
     </tr>
     {% endfor %}
 
