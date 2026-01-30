@@ -1,45 +1,55 @@
-@app.route("/labour-dashboard")
-@login_required
-def labour_dashboard():
-    conn = get_db()
-    c = conn.cursor()
+{% extends "base.html" %}
+{% block content %}
 
-    c.execute("SELECT DISTINCT labour_group_code FROM truck_sales")
-    groups = [g[0] for g in c.fetchall()]
+<h2 style="margin-bottom:20px;">👷 Labour Dashboard</h2>
 
-    result = []
+<div style="overflow-x:auto;">
+<table style="
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+">
 
-    for g in groups:
-        # Total sadaram work
-        c.execute("""
-            SELECT IFNULL(SUM(sadaram),0)
-            FROM truck_sales
-            WHERE labour_group_code=?
-        """, (g,))
-        sadaram = c.fetchone()[0]
+    <tr style="background:#111827;color:white;font-size:16px;">
+        <th style="padding:14px;">Labour Group</th>
+        <th style="padding:14px;">Payable Feet (98 Rule)</th>
+        <th style="padding:14px;">Advance Taken</th>
+        <th style="padding:14px;">Payments Done</th>
+        <th style="padding:14px;">Balance To Pay</th>
+    </tr>
 
-        # 👇 Quarry rule
-        payable_feet = sadaram * 98
+    {% for r in rows %}
+    <tr style="text-align:center;font-weight:600;border-bottom:1px solid #e5e7eb;">
 
-        # Advance taken
-        c.execute("""
-            SELECT IFNULL(SUM(amount),0)
-            FROM labour_payments
-            WHERE labour_group_code=? AND type='advance'
-        """, (g,))
-        advance = c.fetchone()[0]
+        <td style="padding:12px;color:#1f2937;">
+            {{ r[0] }}
+        </td>
 
-        # Payments done
-        c.execute("""
-            SELECT IFNULL(SUM(amount),0)
-            FROM labour_payments
-            WHERE labour_group_code=? AND type='payment'
-        """, (g,))
-        payment = c.fetchone()[0]
+        <td style="padding:12px;color:#2563eb;font-size:17px;">
+            {{ "%.2f"|format(r[1]) }}
+        </td>
 
-        balance = payable_feet - advance - payment
+        <td style="padding:12px;color:#f59e0b;">
+            {{ "%.2f"|format(r[2]) }}
+        </td>
 
-        result.append((g, payable_feet, advance, payment, balance))
+        <td style="padding:12px;color:#10b981;">
+            {{ "%.2f"|format(r[3]) }}
+        </td>
 
-    conn.close()
-    return render_template("labour_dashboard.html", rows=result)
+        <td style="padding:12px;
+                   color:{% if r[4] > 0 %}#ef4444{% else %}#10b981{% endif %};
+                   font-size:18px;">
+            {{ "%.2f"|format(r[4]) }}
+        </td>
+
+    </tr>
+    {% endfor %}
+
+</table>
+</div>
+
+{% endblock %}
