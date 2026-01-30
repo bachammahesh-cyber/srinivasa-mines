@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, session
 from functools import wraps
-import sqlite3
 from datetime import datetime
 import os
+import psycopg2
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -14,15 +14,21 @@ app = Flask(
 
 app.secret_key = "srinivasa-secret"
 
-DB_PATH = os.path.join(BASE_DIR, "quarry.db")
+# ✅ Supabase connection from Render Environment Variable
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
-# ---------- DATABASE INIT ----------
+# ---------- DATABASE CONNECTION ----------
+def get_db():
+    return psycopg2.connect(DATABASE_URL)
+
+
+# ---------- DATABASE INIT (runs once safely) ----------
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
 
-    c.executescript("""
+    c.execute("""
     CREATE TABLE IF NOT EXISTS truck_sales(
         date TEXT,
         vehicle_no TEXT,
@@ -33,7 +39,9 @@ def init_db():
         paid REAL,
         balance REAL
     );
+    """)
 
+    c.execute("""
     CREATE TABLE IF NOT EXISTS labour_payments(
         date TEXT,
         labour_group_code TEXT,
@@ -47,10 +55,6 @@ def init_db():
 
 
 init_db()
-
-
-def get_db():
-    return sqlite3.connect(DB_PATH)
 
 
 # ---------- LOGIN PROTECTION ----------
@@ -107,7 +111,6 @@ def truck_entry():
         conn = get_db()
         c = conn.cursor()
 
-        # --------- FORM DATA ----------
         supervisor = request.form["supervisor"]
         labour_code = request.form["labour_code"]
         vehicle = request.form["vehicle"]
@@ -117,7 +120,6 @@ def truck_entry():
         rate = float(request.form["rate"])
         paid = float(request.form["paid"])
 
-        # --------- STONE SIZE MAP (feet per piece) ----------
         stone_sizes = {
             "2x2": 4,
             "3x2": 6,
@@ -129,9 +131,6 @@ def truck_entry():
 
         feet = pieces * stone_sizes[stone_code]
 
-        # --------- 98 FEET RULE ----------
-        feet = pieces * stone_sizes[stone_code]
-
         total_sadaram = feet / 100
         sadaram = total_sadaram * 0.98
 
@@ -140,9 +139,8 @@ def truck_entry():
 
         date = datetime.now().strftime("%Y-%m-%d")
 
-        # --------- INSERT ----------
         c.execute("""
-        INSERT INTO truck_sales VALUES (?,?,?,?,?,?,?,?)
+        INSERT INTO truck_sales VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """, (date, vehicle, buyer, labour_code, sadaram, total, paid, balance))
 
         conn.commit()
@@ -167,7 +165,7 @@ def pay_labour():
         ptype = request.form["ptype"]
 
         c.execute("""
-        INSERT INTO labour_payments VALUES (?,?,?,?)
+        INSERT INTO labour_payments VALUES (%s,%s,%s,%s)
         """, (date, labour, amount, ptype))
 
         conn.commit()
@@ -218,17 +216,35 @@ def labour_dashboard():
     conn = get_db()
     c = conn.cursor()
 
-    c.execute("""
-        SELECT labour_group_code,
-               IFNULL(SUM(sadaram),0)
-        FROM truck_sales
-        GROUP BY labour_group_code
-    """)
+    c.execute("SELECT DISTINCT labour_group_code FROM truck_sales")
+    groups = [g[0] for g in c.fetchall()]
 
-    rows = c.fetchall()
+    result = []
+
+    for g in groups:
+        c.execute("SELECT COALESCE(SUM(sadaram),0) FROM truck_sales WHERE labour_group_code=%s", (g,))
+        sadaram = c.fetchone()[0]
+
+        c.execute("""
+            SELECT COALESCE(SUM(amount),0)
+            FROM labour_payments
+            WHERE labour_group_code=%s AND type='advance'
+        """, (g,))
+        advance = c.fetchone()[0]
+
+        c.execute("""
+            SELECT COALESCE(SUM(amount),0)
+            FROM labour_payments
+            WHERE labour_group_code=%s AND type='payment'
+        """, (g,))
+        payment = c.fetchone()[0]
+
+        balance = sadaram - advance - payment
+
+        result.append((g, sadaram, advance, payment, balance))
 
     conn.close()
-    return render_template("labour_dashboard.html", rows=rows)
+    return render_template("labour_dashboard.html", rows=result)
 
 
 if __name__ == "__main__":
