@@ -39,15 +39,6 @@ def init_db():
     );
     """)
 
-    # NEW TABLE
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS buyer_payments(
-        date DATE,
-        buyer_name TEXT,
-        amount DOUBLE PRECISION
-    );
-    """)
-
     conn.commit()
     conn.close()
 
@@ -90,7 +81,7 @@ def logout():
     return redirect("/")
 
 
-# ---------------- DASHBOARD ----------------
+# ---------------- HOME ----------------
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -139,7 +130,8 @@ def truck_entry():
 
     return render_template("truck_entry.html")
 
-# ---------- PAY LABOUR ----------
+
+# ---------------- PAY LABOUR ----------------
 @app.route("/pay-labour", methods=["GET", "POST"])
 @login_required
 def pay_labour():
@@ -153,8 +145,7 @@ def pay_labour():
         ptype = request.form["ptype"]
 
         c.execute("""
-            INSERT INTO labour_payments (date, labour_group_code, amount, type)
-            VALUES (%s,%s,%s,%s)
+            INSERT INTO labour_payments VALUES (%s,%s,%s,%s)
         """, (date, labour, amount, ptype))
 
         conn.commit()
@@ -164,7 +155,8 @@ def pay_labour():
 
     return render_template("pay_labour.html")
 
-# ---------- SALES REPORT ----------
+
+# ---------------- SALES REPORT ----------------
 @app.route("/sales-report")
 @login_required
 def sales_report():
@@ -182,6 +174,25 @@ def sales_report():
     conn.close()
 
     return render_template("sales_report.html", rows=rows)
+
+
+# ---------------- CREDIT REPORT ----------------
+@app.route("/credit-report")
+@login_required
+def credit_report():
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT date, vehicle_no, buyer_name, balance
+        FROM truck_sales
+        WHERE balance > 0
+        ORDER BY date ASC
+    """)
+    rows = c.fetchall()
+    conn.close()
+
+    return render_template("credit_report.html", rows=rows)
 
 
 # ---------------- LABOUR DASHBOARD ----------------
@@ -210,25 +221,6 @@ def labour_details(code):
     return render_template("labour_details.html", rows=rows)
 
 
-# ---------------- CREDIT REPORT ----------------
-@app.route("/credit-report")
-@login_required
-def credit_report():
-    conn = get_db()
-    c = conn.cursor()
-
-    c.execute("""
-        SELECT date, vehicle_no, buyer_name, balance
-        FROM truck_sales
-        WHERE balance > 0
-        ORDER BY date ASC
-    """)
-    rows = c.fetchall()
-    conn.close()
-
-    return render_template("credit_report.html", rows=rows)
-
-
 # ---------------- BUYER DASHBOARD ----------------
 @app.route("/buyer-dashboard")
 @login_required
@@ -239,44 +231,14 @@ def buyer_dashboard():
 @app.route("/receive-buyer-payment", methods=["GET", "POST"])
 @login_required
 def receive_buyer_payment():
-    conn = get_db()
-    c = conn.cursor()
-
-    if request.method == "POST":
-        buyer = request.form["buyer"]
-        amount = float(request.form["amount"])
-        date = datetime.now().date()
-
-        c.execute(
-            "INSERT INTO buyer_payments VALUES (%s,%s,%s)",
-            (date, buyer, amount)
-        )
-        conn.commit()
-
-    c.execute("""
-        SELECT buyer_name, COALESCE(SUM(balance),0)
-        FROM truck_sales
-        GROUP BY buyer_name
-        HAVING COALESCE(SUM(balance),0) > 0
-    """)
-    buyers = c.fetchall()
-
-    conn.close()
-    return render_template("receive_buyer_payment.html", buyers=buyers)
-
-# ---------- RECEIVE BUYER PAYMENT ----------
-@app.route("/receive-buyer-payment", methods=["GET", "POST"])
-@login_required
-def receive_buyer_payment():
     if request.method == "POST":
         conn = get_db()
         c = conn.cursor()
 
         buyer = request.form["buyer"]
         amount = float(request.form["amount"])
-        date = datetime.now().date()
 
-        # reduce balance from oldest credits first
+        # reduce balance from oldest credits
         c.execute("""
             SELECT date, balance
             FROM truck_sales
