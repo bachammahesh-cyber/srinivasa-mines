@@ -1,47 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:25px;">👷 Labour Dashboard</h2>
+<h2 style="margin-bottom:20px;">👷 Labour Dashboard</h2>
 
-<div style="
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:25px;
-">
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
 
-{% for r in rows %}
-
-    {% set color =
-        "#3b82f6" if r[0]=="SV" else
-        "#10b981" if r[0]=="KP" else
-        "#f59e0b" if r[0]=="LK" else
-        "#ef4444"
-    %}
-
-    <div style="
-        background:{{color}};
-        color:white;
-        padding:30px;
-        border-radius:16px;
-        box-shadow:0 15px 35px rgba(0,0,0,0.15);
-        text-align:center;
-    ">
-
-        <div style="font-size:20px;font-weight:700;margin-bottom:10px;">
-            {{ r[0] }}
+    <a href="/labour-details/SV" style="text-decoration:none;">
+        <div style="background:#2563eb;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
+            SIVANNA (SV)
         </div>
+    </a>
 
-        <div style="font-size:42px;font-weight:800;">
-            {{ "%.2f"|format(r[1]) }}
+    <a href="/labour-details/LK" style="text-decoration:none;">
+        <div style="background:#16a34a;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
+            LAKSHMANNA (LK)
         </div>
+    </a>
 
-        <div style="opacity:0.9;margin-top:8px;">
-            Total Payable Sadaram (98 rule)
+    <a href="/labour-details/KD" style="text-decoration:none;">
+        <div style="background:#ea580c;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
+            KONDAYYA (KD)
         </div>
+    </a>
 
-    </div>
-
-{% endfor %}
+    <a href="/labour-details/KP" style="text-decoration:none;">
+        <div style="background:#db2777;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
+            KUPENDRA (KP)
+        </div>
+    </a>
 
 </div>
 

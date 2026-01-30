@@ -234,6 +234,25 @@ def labour_dashboard():
     conn.close()
     return render_template("labour_dashboard.html", rows=result)
 
+# ---------- LABOUR DETAILS ----------
+@app.route("/labour-details/<code>")
+@login_required
+def labour_details(code):
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT date, vehicle_no, buyer_name, sadaram
+        FROM truck_sales
+        WHERE labour_group_code=%s
+        ORDER BY date DESC
+    """, (code,))
+
+    rows = c.fetchall()
+    conn.close()
+
+    return render_template("labour_details.html", rows=rows, code=code)
+
 
 # ---------------- RENDER PORT ----------------
 if __name__ == "__main__":
