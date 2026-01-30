@@ -139,6 +139,50 @@ def truck_entry():
 
     return render_template("truck_entry.html")
 
+# ---------- PAY LABOUR ----------
+@app.route("/pay-labour", methods=["GET", "POST"])
+@login_required
+def pay_labour():
+    if request.method == "POST":
+        conn = get_db()
+        c = conn.cursor()
+
+        date = datetime.now().date()
+        labour = request.form["labour"]
+        amount = float(request.form["amount"])
+        ptype = request.form["ptype"]
+
+        c.execute("""
+            INSERT INTO labour_payments (date, labour_group_code, amount, type)
+            VALUES (%s,%s,%s,%s)
+        """, (date, labour, amount, ptype))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/dashboard")
+
+    return render_template("pay_labour.html")
+
+# ---------- SALES REPORT ----------
+@app.route("/sales-report")
+@login_required
+def sales_report():
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT date, vehicle_no, buyer_name, labour_group_code,
+               sadaram, total_amount, paid, balance
+        FROM truck_sales
+        ORDER BY date DESC
+    """)
+
+    rows = c.fetchall()
+    conn.close()
+
+    return render_template("sales_report.html", rows=rows)
+
 
 # ---------------- LABOUR DASHBOARD ----------------
 @app.route("/labour-dashboard")
