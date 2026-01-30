@@ -107,18 +107,40 @@ def truck_entry():
         conn = get_db()
         c = conn.cursor()
 
-        date = datetime.now().strftime("%Y-%m-%d")
+        # --------- FORM DATA ----------
+        supervisor = request.form["supervisor"]
+        labour_code = request.form["labour_code"]
         vehicle = request.form["vehicle"]
         buyer = request.form["buyer"]
-        labour = request.form["labour"]
-        sadaram = float(request.form["sadaram"])
-        total = float(request.form["total"])
+        stone_code = request.form["stone_code"]
+        pieces = int(request.form["pieces"])
+        rate = float(request.form["rate"])
         paid = float(request.form["paid"])
+
+        # --------- STONE SIZE MAP (feet per piece) ----------
+        stone_sizes = {
+            "2x2": 4,
+            "3x2": 6,
+            "4x2": 8,
+            "5x2": 10,
+            "6x2": 12,
+            "7x2": 14
+        }
+
+        feet = pieces * stone_sizes[stone_code]
+
+        # --------- 98 FEET RULE ----------
+        sadaram = (feet / 100) * 98
+
+        total = sadaram * rate
         balance = total - paid
 
+        date = datetime.now().strftime("%Y-%m-%d")
+
+        # --------- INSERT ----------
         c.execute("""
         INSERT INTO truck_sales VALUES (?,?,?,?,?,?,?,?)
-        """, (date, vehicle, buyer, labour, sadaram, total, paid, balance))
+        """, (date, vehicle, buyer, labour_code, sadaram, total, paid, balance))
 
         conn.commit()
         conn.close()
