@@ -224,9 +224,16 @@ def labour_dashboard():
     result = []
 
     for g in groups:
-        # Work done
-        c.execute("SELECT IFNULL(SUM(sadaram),0) FROM truck_sales WHERE labour_group_code=?", (g,))
-        sadaram = c.fetchone()[0]
+        # Total sadaram done
+        c.execute("""
+            SELECT IFNULL(SUM(sadaram),0)
+            FROM truck_sales
+            WHERE labour_group_code=?
+        """, (g,))
+        sadaram = c.fetchone()[0] or 0
+
+        # Convert to payable feet (98 rule)
+        payable_feet = sadaram * 98
 
         # Advance taken
         c.execute("""
@@ -234,7 +241,7 @@ def labour_dashboard():
             FROM labour_payments
             WHERE labour_group_code=? AND type='advance'
         """, (g,))
-        advance = c.fetchone()[0]
+        advance = c.fetchone()[0] or 0
 
         # Payments done
         c.execute("""
@@ -242,11 +249,11 @@ def labour_dashboard():
             FROM labour_payments
             WHERE labour_group_code=? AND type='payment'
         """, (g,))
-        payment = c.fetchone()[0]
+        payment = c.fetchone()[0] or 0
 
-        balance = sadaram - advance - payment
+        balance = payable_feet - advance - payment
 
-        result.append((g, sadaram, advance, payment, balance))
+        result.append((g, payable_feet, advance, payment, balance))
 
     conn.close()
     return render_template("labour_dashboard.html", rows=result)
