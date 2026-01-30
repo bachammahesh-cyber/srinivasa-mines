@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="
+    background:white;
+    padding:40px;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+">
+
+    <h2 style="color:#10b981;font-size:28px;margin-bottom:20px;">
+        ✅ Entry recorded successfully
+    </h2>
+
+    <div style="margin-top:30px;">
+        <a href="/dashboard" class="card blue" style="display:inline-block;width:220px;margin:10px;">
+            🏠 Go to Dashboard
+        </a>
+
+        <a href="/truck-entry" class="card green" style="display:inline-block;width:220px;margin:10px;">
+            ➕ Make another entry
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

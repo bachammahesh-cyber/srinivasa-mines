@@ -146,7 +146,7 @@ def truck_entry():
         conn.commit()
         conn.close()
 
-        return redirect("/dashboard")
+        return render_template("entry_success.html")
 
     return render_template("truck_entry.html")
 
