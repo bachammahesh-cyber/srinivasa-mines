@@ -244,7 +244,7 @@ def labour_details(code):
     c.execute("""
         SELECT date, vehicle_no, buyer_name, sadaram
         FROM truck_sales
-        WHERE labour_group_code=%s
+        WHERE labour_group_code=?
         ORDER BY date DESC
     """, (code,))
 
