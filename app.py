@@ -244,14 +244,14 @@ def labour_details(code):
     c.execute("""
         SELECT date, vehicle_no, buyer_name, sadaram
         FROM truck_sales
-        WHERE labour_group_code=?
+        WHERE labour_group_code=%s
         ORDER BY date DESC
     """, (code,))
 
     rows = c.fetchall()
     conn.close()
 
-    return render_template("labour_details.html", rows=rows, code=code)
+    return render_template("labour_details.html", rows=rows)
 
 
 # ---------------- RENDER PORT ----------------
