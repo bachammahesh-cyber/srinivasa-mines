@@ -14,11 +14,12 @@ app = Flask(
 
 app.secret_key = "srinivasa-secret"
 
+
 # ---------------- DATABASE ----------------
 def get_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")
     if not DATABASE_URL:
-        raise Exception("DATABASE_URL not set in Render Environment")
+        raise Exception("DATABASE_URL not set")
     return psycopg2.connect(DATABASE_URL)
 
 
@@ -48,11 +49,20 @@ def init_db():
     );
     """)
 
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS buyer_payments(
+        date DATE,
+        buyer_name TEXT,
+        amount DOUBLE PRECISION
+    );
+    """)
+
     conn.commit()
     conn.close()
 
 
 init_db()
+
 
 # ---------------- LOGIN ----------------
 def login_required(f):
@@ -106,7 +116,6 @@ def truck_entry():
         conn = get_db()
         c = conn.cursor()
 
-        supervisor = request.form["supervisor"]
         labour_code = request.form["labour_code"]
         vehicle = request.form["vehicle"]
         buyer = request.form["buyer"]
@@ -125,8 +134,8 @@ def truck_entry():
         }
 
         feet = pieces * stone_sizes[stone_code]
-
         sadaram = (feet / 100) * 0.98
+
         total = sadaram * rate
         balance = total - paid
 
@@ -169,7 +178,33 @@ def pay_labour():
     return render_template("pay_labour.html")
 
 
-# ---------------- REPORTS ----------------
+# ---------------- LABOUR DASHBOARD ----------------
+@app.route("/labour-dashboard")
+@login_required
+def labour_dashboard():
+    return render_template("labour_dashboard.html")
+
+
+@app.route("/labour-details/<code>")
+@login_required
+def labour_details(code):
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT date, vehicle_no, buyer_name, sadaram
+        FROM truck_sales
+        WHERE labour_group_code=%s
+        ORDER BY date DESC
+    """, (code,))
+
+    rows = c.fetchall()
+    conn.close()
+
+    return render_template("labour_details.html", rows=rows)
+
+
+# ---------------- SALES REPORT ----------------
 @app.route("/sales-report")
 @login_required
 def sales_report():
@@ -181,11 +216,13 @@ def sales_report():
     return render_template("sales_report.html", rows=rows)
 
 
+# ---------------- CREDIT REPORT ----------------
 @app.route("/credit-report")
 @login_required
 def credit_report():
     conn = get_db()
     c = conn.cursor()
+
     c.execute("""
         SELECT date, vehicle_no, buyer_name, balance
         FROM truck_sales
@@ -193,65 +230,52 @@ def credit_report():
         ORDER BY date ASC
     """)
     rows = c.fetchall()
+
     conn.close()
     return render_template("credit_report.html", rows=rows)
 
 
-# ---------------- LABOUR DASHBOARD ----------------
-@app.route("/labour-dashboard")
+# ---------------- BUYER DASHBOARD ----------------
+@app.route("/buyer-dashboard", methods=["GET", "POST"])
 @login_required
-def labour_dashboard():
+def buyer_dashboard():
     conn = get_db()
     c = conn.cursor()
 
-    c.execute("SELECT DISTINCT labour_group_code FROM truck_sales")
-    groups = [g[0] for g in c.fetchall()]
-
-    result = []
-
-    for g in groups:
-        c.execute("SELECT COALESCE(SUM(sadaram),0) FROM truck_sales WHERE labour_group_code=%s", (g,))
-        sadaram = c.fetchone()[0]
+    if request.method == "POST":
+        buyer = request.form["buyer"]
+        amount = float(request.form["amount"])
+        date = datetime.now().date()
 
         c.execute("""
-            SELECT COALESCE(SUM(amount),0)
-            FROM labour_payments
-            WHERE labour_group_code=%s AND type='advance'
-        """, (g,))
-        advance = c.fetchone()[0]
-
-        c.execute("""
-            SELECT COALESCE(SUM(amount),0)
-            FROM labour_payments
-            WHERE labour_group_code=%s AND type='payment'
-        """, (g,))
-        payment = c.fetchone()[0]
-
-        balance = sadaram - advance - payment
-
-        result.append((g, sadaram, advance, payment, balance))
-
-    conn.close()
-    return render_template("labour_dashboard.html", rows=result)
-
-# ---------- LABOUR DETAILS ----------
-@app.route("/labour-details/<code>")
-@login_required
-def labour_details(code):
-    conn = get_db()
-    c = conn.cursor()
+            INSERT INTO buyer_payments VALUES (%s,%s,%s)
+        """, (date, buyer, amount))
+        conn.commit()
 
     c.execute("""
-        SELECT t.date, t.vehicle_no, t.buyer_name, t.sadaram
-        FROM truck_sales t
-        WHERE t.labour_group_code=%s
-        ORDER BY t.date DESC
-    """, (code,))
+        SELECT buyer_name, COALESCE(SUM(balance),0)
+        FROM truck_sales
+        GROUP BY buyer_name
+    """)
+    buyers = c.fetchall()
 
-    rows = c.fetchall()
+    rows = []
+
+    for b, total_balance in buyers:
+        c.execute("""
+            SELECT COALESCE(SUM(amount),0)
+            FROM buyer_payments
+            WHERE buyer_name=%s
+        """, (b,))
+        paid = c.fetchone()[0]
+
+        due = total_balance - paid
+
+        if due > 0:
+            rows.append((b, due))
+
     conn.close()
-
-    return render_template("labour_details.html", rows=rows)
+    return render_template("buyer_dashboard.html", rows=rows)
 
 
 # ---------------- RENDER PORT ----------------
