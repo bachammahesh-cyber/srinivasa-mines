@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 style="margin-bottom:20px;">Labour Group Details</h2>
+
+<div style="overflow-x:auto;">
+<table style="width:100%;border-collapse:collapse;background:white;">
+    <tr style="background:#111827;color:white;">
+        <th style="padding:12px;">Date</th>
+        <th style="padding:12px;">Vehicle</th>
+        <th style="padding:12px;">Buyer</th>
+        <th style="padding:12px;">Sadaram</th>
+    </tr>
+
+    {% for r in rows %}
+    <tr style="text-align:center;border-bottom:1px solid #e5e7eb;">
+        <td style="padding:10px;">{{ r[0] }}</td>
+        <td style="padding:10px;">{{ r[1] }}</td>
+        <td style="padding:10px;">{{ r[2] }}</td>
+        <td style="padding:10px;">{{ "%.3f"|format(r[3]) }}</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+<br>
+<a href="/labour-dashboard">⬅ Back</a>
+
+{% endblock %}
