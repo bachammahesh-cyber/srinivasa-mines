@@ -14,38 +14,36 @@ app = Flask(
 
 app.secret_key = "srinivasa-secret"
 
-# ✅ Supabase connection from Render Environment Variable
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-
-# ---------- DATABASE CONNECTION ----------
+# ---------------- DATABASE ----------------
 def get_db():
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+    if not DATABASE_URL:
+        raise Exception("DATABASE_URL not set in Render Environment")
     return psycopg2.connect(DATABASE_URL)
 
 
-# ---------- DATABASE INIT (runs once safely) ----------
 def init_db():
     conn = get_db()
     c = conn.cursor()
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS truck_sales(
-        date TEXT,
+        date DATE,
         vehicle_no TEXT,
         buyer_name TEXT,
         labour_group_code TEXT,
-        sadaram REAL,
-        total_amount REAL,
-        paid REAL,
-        balance REAL
+        sadaram DOUBLE PRECISION,
+        total_amount DOUBLE PRECISION,
+        paid DOUBLE PRECISION,
+        balance DOUBLE PRECISION
     );
     """)
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS labour_payments(
-        date TEXT,
+        date DATE,
         labour_group_code TEXT,
-        amount REAL,
+        amount DOUBLE PRECISION,
         type TEXT
     );
     """)
@@ -56,8 +54,7 @@ def init_db():
 
 init_db()
 
-
-# ---------- LOGIN PROTECTION ----------
+# ---------------- LOGIN ----------------
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -67,43 +64,41 @@ def login_required(f):
     return wrapper
 
 
-# ---------- LOGIN ----------
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        u = request.form["username"]
+        p = request.form["password"]
 
-        if username == "maheshreddy" and password == "9440984550":
+        if u == "maheshreddy" and p == "9440984550":
             session["role"] = "owner"
             return redirect("/dashboard")
 
-        if username == "balesh" and password == "9010120863":
+        if u == "balesh" and p == "9010120863":
             session["role"] = "supervisor"
             return redirect("/dashboard")
 
-        if username == "elisha" and password == "8096659221":
+        if u == "elisha" and p == "8096659221":
             session["role"] = "supervisor"
             return redirect("/dashboard")
 
     return render_template("login.html")
 
 
-# ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
 
-# ---------- DASHBOARD ----------
+# ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 @login_required
 def dashboard():
     return render_template("home.html")
 
 
-# ---------- TRUCK ENTRY ----------
+# ---------------- TRUCK ENTRY ----------------
 @app.route("/truck-entry", methods=["GET", "POST"])
 @login_required
 def truck_entry():
@@ -131,13 +126,11 @@ def truck_entry():
 
         feet = pieces * stone_sizes[stone_code]
 
-        total_sadaram = feet / 100
-        sadaram = total_sadaram * 0.98
-
+        sadaram = (feet / 100) * 0.98
         total = sadaram * rate
         balance = total - paid
 
-        date = datetime.now().strftime("%Y-%m-%d")
+        date = datetime.now().date()
 
         c.execute("""
         INSERT INTO truck_sales VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
@@ -151,7 +144,7 @@ def truck_entry():
     return render_template("truck_entry.html")
 
 
-# ---------- PAY LABOUR ----------
+# ---------------- PAY LABOUR ----------------
 @app.route("/pay-labour", methods=["GET", "POST"])
 @login_required
 def pay_labour():
@@ -159,7 +152,7 @@ def pay_labour():
         conn = get_db()
         c = conn.cursor()
 
-        date = datetime.now().strftime("%Y-%m-%d")
+        date = datetime.now().date()
         labour = request.form["labour"]
         amount = float(request.form["amount"])
         ptype = request.form["ptype"]
@@ -176,27 +169,23 @@ def pay_labour():
     return render_template("pay_labour.html")
 
 
-# ---------- SALES REPORT ----------
+# ---------------- REPORTS ----------------
 @app.route("/sales-report")
 @login_required
 def sales_report():
     conn = get_db()
     c = conn.cursor()
-
     c.execute("SELECT * FROM truck_sales ORDER BY date DESC")
     rows = c.fetchall()
-
     conn.close()
     return render_template("sales_report.html", rows=rows)
 
 
-# ---------- CREDIT REPORT ----------
 @app.route("/credit-report")
 @login_required
 def credit_report():
     conn = get_db()
     c = conn.cursor()
-
     c.execute("""
         SELECT date, vehicle_no, buyer_name, balance
         FROM truck_sales
@@ -204,12 +193,11 @@ def credit_report():
         ORDER BY date ASC
     """)
     rows = c.fetchall()
-
     conn.close()
     return render_template("credit_report.html", rows=rows)
 
 
-# ---------- LABOUR DASHBOARD ----------
+# ---------------- LABOUR DASHBOARD ----------------
 @app.route("/labour-dashboard")
 @login_required
 def labour_dashboard():
@@ -247,5 +235,7 @@ def labour_dashboard():
     return render_template("labour_dashboard.html", rows=result)
 
 
+# ---------------- RENDER PORT ----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
