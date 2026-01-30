@@ -4,22 +4,12 @@ from datetime import datetime
 import os
 import psycopg2
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-app = Flask(
-    __name__,
-    template_folder=os.path.join(BASE_DIR, "templates"),
-    static_folder=os.path.join(BASE_DIR, "static")
-)
-
+app = Flask(__name__)
 app.secret_key = "srinivasa-secret"
-
 
 # ---------------- DATABASE ----------------
 def get_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")
-    if not DATABASE_URL:
-        raise Exception("DATABASE_URL not set")
     return psycopg2.connect(DATABASE_URL)
 
 
@@ -49,6 +39,7 @@ def init_db():
     );
     """)
 
+    # NEW TABLE
     c.execute("""
     CREATE TABLE IF NOT EXISTS buyer_payments(
         date DATE,
@@ -60,9 +51,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 init_db()
-
 
 # ---------------- LOGIN ----------------
 def login_required(f):
@@ -135,10 +124,8 @@ def truck_entry():
 
         feet = pieces * stone_sizes[stone_code]
         sadaram = (feet / 100) * 0.98
-
         total = sadaram * rate
         balance = total - paid
-
         date = datetime.now().date()
 
         c.execute("""
@@ -151,31 +138,6 @@ def truck_entry():
         return render_template("entry_success.html")
 
     return render_template("truck_entry.html")
-
-
-# ---------------- PAY LABOUR ----------------
-@app.route("/pay-labour", methods=["GET", "POST"])
-@login_required
-def pay_labour():
-    if request.method == "POST":
-        conn = get_db()
-        c = conn.cursor()
-
-        date = datetime.now().date()
-        labour = request.form["labour"]
-        amount = float(request.form["amount"])
-        ptype = request.form["ptype"]
-
-        c.execute("""
-        INSERT INTO labour_payments VALUES (%s,%s,%s,%s)
-        """, (date, labour, amount, ptype))
-
-        conn.commit()
-        conn.close()
-
-        return redirect("/dashboard")
-
-    return render_template("pay_labour.html")
 
 
 # ---------------- LABOUR DASHBOARD ----------------
@@ -204,18 +166,6 @@ def labour_details(code):
     return render_template("labour_details.html", rows=rows)
 
 
-# ---------------- SALES REPORT ----------------
-@app.route("/sales-report")
-@login_required
-def sales_report():
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT * FROM truck_sales ORDER BY date DESC")
-    rows = c.fetchall()
-    conn.close()
-    return render_template("sales_report.html", rows=rows)
-
-
 # ---------------- CREDIT REPORT ----------------
 @app.route("/credit-report")
 @login_required
@@ -230,15 +180,21 @@ def credit_report():
         ORDER BY date ASC
     """)
     rows = c.fetchall()
-
     conn.close()
+
     return render_template("credit_report.html", rows=rows)
 
 
 # ---------------- BUYER DASHBOARD ----------------
-@app.route("/buyer-dashboard", methods=["GET", "POST"])
+@app.route("/buyer-dashboard")
 @login_required
 def buyer_dashboard():
+    return render_template("buyer_dashboard.html")
+
+
+@app.route("/receive-buyer-payment", methods=["GET", "POST"])
+@login_required
+def receive_buyer_payment():
     conn = get_db()
     c = conn.cursor()
 
@@ -247,38 +203,25 @@ def buyer_dashboard():
         amount = float(request.form["amount"])
         date = datetime.now().date()
 
-        c.execute("""
-            INSERT INTO buyer_payments VALUES (%s,%s,%s)
-        """, (date, buyer, amount))
+        c.execute(
+            "INSERT INTO buyer_payments VALUES (%s,%s,%s)",
+            (date, buyer, amount)
+        )
         conn.commit()
 
     c.execute("""
         SELECT buyer_name, COALESCE(SUM(balance),0)
         FROM truck_sales
         GROUP BY buyer_name
+        HAVING COALESCE(SUM(balance),0) > 0
     """)
     buyers = c.fetchall()
 
-    rows = []
-
-    for b, total_balance in buyers:
-        c.execute("""
-            SELECT COALESCE(SUM(amount),0)
-            FROM buyer_payments
-            WHERE buyer_name=%s
-        """, (b,))
-        paid = c.fetchone()[0]
-
-        due = total_balance - paid
-
-        if due > 0:
-            rows.append((b, due))
-
     conn.close()
-    return render_template("buyer_dashboard.html", rows=rows)
+    return render_template("receive_buyer_payment.html", buyers=buyers)
 
 
-# ---------------- RENDER PORT ----------------
+# ---------------- PORT ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
