@@ -264,6 +264,52 @@ def receive_buyer_payment():
     conn.close()
     return render_template("receive_buyer_payment.html", buyers=buyers)
 
+# ---------- RECEIVE BUYER PAYMENT ----------
+@app.route("/receive-buyer-payment", methods=["GET", "POST"])
+@login_required
+def receive_buyer_payment():
+    if request.method == "POST":
+        conn = get_db()
+        c = conn.cursor()
+
+        buyer = request.form["buyer"]
+        amount = float(request.form["amount"])
+        date = datetime.now().date()
+
+        # reduce balance from oldest credits first
+        c.execute("""
+            SELECT date, balance
+            FROM truck_sales
+            WHERE buyer_name=%s AND balance>0
+            ORDER BY date ASC
+        """, (buyer,))
+
+        rows = c.fetchall()
+        remaining = amount
+
+        for r in rows:
+            if remaining <= 0:
+                break
+
+            row_date, bal = r
+            deduction = min(bal, remaining)
+
+            c.execute("""
+                UPDATE truck_sales
+                SET balance = balance - %s,
+                    paid = paid + %s
+                WHERE buyer_name=%s AND date=%s
+            """, (deduction, deduction, buyer, row_date))
+
+            remaining -= deduction
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/buyer-dashboard")
+
+    return render_template("receive_buyer_payment.html")
+
 
 # ---------------- PORT ----------------
 if __name__ == "__main__":
