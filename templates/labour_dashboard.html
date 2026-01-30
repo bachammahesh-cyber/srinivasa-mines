@@ -1,35 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:20px;">👷 Labour Sadaram Dashboard</h2>
+<h2 style="margin-bottom:25px;">👷 Labour Dashboard</h2>
 
-<div style="overflow-x:auto;">
-<table style="
-    width:100%;
-    border-collapse:collapse;
-    background:white;
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+<div style="
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:25px;
 ">
 
-    <tr style="background:#111827;color:white;font-size:16px;">
-        <th style="padding:14px;">Labour Group</th>
-        <th style="padding:14px;">Total Sadaram Produced (98 Rule)</th>
-    </tr>
+{% for r in rows %}
 
-    {% for r in rows %}
-    <tr style="text-align:center;font-weight:600;border-bottom:1px solid #e5e7eb;">
-        <td style="padding:12px;color:#1f2937;">
+    {% set color =
+        "#3b82f6" if r[0]=="SV" else
+        "#10b981" if r[0]=="KP" else
+        "#f59e0b" if r[0]=="LK" else
+        "#ef4444"
+    %}
+
+    <div style="
+        background:{{color}};
+        color:white;
+        padding:30px;
+        border-radius:16px;
+        box-shadow:0 15px 35px rgba(0,0,0,0.15);
+        text-align:center;
+    ">
+
+        <div style="font-size:20px;font-weight:700;margin-bottom:10px;">
             {{ r[0] }}
-        </td>
-        <td style="padding:12px;color:#2563eb;font-size:18px;">
-            {{ "%.3f"|format(r[1]) }}
-        </td>
-    </tr>
-    {% endfor %}
+        </div>
 
-</table>
+        <div style="font-size:42px;font-weight:800;">
+            {{ "%.2f"|format(r[1]) }}
+        </div>
+
+        <div style="opacity:0.9;margin-top:8px;">
+            Total Payable Sadaram (98 rule)
+        </div>
+
+    </div>
+
+{% endfor %}
+
 </div>
 
 {% endblock %}
