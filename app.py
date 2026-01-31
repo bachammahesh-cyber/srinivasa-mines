@@ -195,7 +195,7 @@ def credit_report():
     return render_template("credit_report.html", rows=rows)
 
 
-# ---------------- LABOUR DASHBOARD ----------------
+# ---------------- LABOUR DASHBOARD (FIXED) ----------------
 @app.route("/labour-dashboard")
 @login_required
 def labour_dashboard():
@@ -209,11 +209,16 @@ def labour_dashboard():
         "KP": "KUPENDRA"
     }
 
-    data = []
+    colors = {
+        "SV": "#2563eb",
+        "LK": "#16a34a",
+        "KD": "#ea580c",
+        "KP": "#db2777"
+    }
+
+    groups_list = []
 
     for code, name in groups.items():
-
-        # Total Sadaram produced
         c.execute("""
             SELECT COALESCE(SUM(sadaram),0)
             FROM truck_sales
@@ -221,7 +226,6 @@ def labour_dashboard():
         """, (code,))
         sadaram = c.fetchone()[0]
 
-        # Total Advance given
         c.execute("""
             SELECT COALESCE(SUM(amount),0)
             FROM labour_payments
@@ -229,10 +233,16 @@ def labour_dashboard():
         """, (code,))
         advance = c.fetchone()[0]
 
-        data.append((code, name, sadaram, advance))
+        groups_list.append({
+            "code": code,
+            "name": name,
+            "sadaram": sadaram,
+            "advance": advance,
+            "color": colors[code]
+        })
 
     conn.close()
-    return render_template("labour_dashboard.html", data=data)
+    return render_template("labour_dashboard.html", groups=groups_list)
 
 
 @app.route("/labour-details/<code>")
@@ -259,60 +269,6 @@ def labour_details(code):
 @login_required
 def buyer_dashboard():
     return render_template("buyer_dashboard.html")
-
-@app.route("/receive-buyer-payment", methods=["GET", "POST"])
-@login_required
-def receive_buyer_payment():
-    conn = get_db()
-    c = conn.cursor()
-
-    # Get buyers who still have balance
-    c.execute("""
-        SELECT buyer_name, SUM(balance) as due
-        FROM truck_sales
-        WHERE balance > 0
-        GROUP BY buyer_name
-        ORDER BY buyer_name
-    """)
-    buyers = c.fetchall()
-
-    if request.method == "POST":
-        buyer = request.form["buyer"]
-        amount = float(request.form["amount"])
-
-        # Reduce from oldest credits
-        c.execute("""
-            SELECT date, balance
-            FROM truck_sales
-            WHERE buyer_name=%s AND balance>0
-            ORDER BY date ASC
-        """, (buyer,))
-
-        rows = c.fetchall()
-        remaining = amount
-
-        for r in rows:
-            if remaining <= 0:
-                break
-
-            row_date, bal = r
-            deduction = min(bal, remaining)
-
-            c.execute("""
-                UPDATE truck_sales
-                SET balance = balance - %s,
-                    paid = paid + %s
-                WHERE buyer_name=%s AND date=%s
-            """, (deduction, deduction, buyer, row_date))
-
-            remaining -= deduction
-
-        conn.commit()
-        conn.close()
-        return redirect("/buyer-dashboard")
-
-    conn.close()
-    return render_template("receive_buyer_payment.html", buyers=buyers)
 
 
 # ---------------- PORT ----------------
