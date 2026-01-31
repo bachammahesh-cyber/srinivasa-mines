@@ -267,6 +267,12 @@ def labour_details(code):
 
     return render_template("labour_details.html", rows=rows)
 
+# ---------------- BUYER DASHBOARD ----------------
+@app.route("/buyer-dashboard")
+@login_required
+def buyer_dashboard():
+    return render_template("buyer_dashboard.html")
+
 
 # ---------------- OWNER EDIT / DELETE ----------------
 @app.route("/edit-entry/<int:entry_id>", methods=["GET", "POST"])
