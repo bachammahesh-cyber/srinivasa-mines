@@ -1,33 +1,40 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:20px;">👷 Labour Dashboard</h2>
+<h2 style="margin-bottom:25px;">👷 Labour Dashboard</h2>
 
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:25px;">
 
-    <a href="/labour-details/SV" style="text-decoration:none;">
-        <div style="background:#2563eb;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
-            SIVANNA (SV)
+{% for d in data %}
+<a href="/labour-details/{{ d[0] }}" style="text-decoration:none;">
+    <div style="
+        padding:30px;
+        border-radius:14px;
+        color:white;
+        font-weight:bold;
+        box-shadow:0 10px 25px rgba(0,0,0,0.1);
+        {% if d[0]=='SV' %}background:#2563eb;
+        {% elif d[0]=='LK' %}background:#16a34a;
+        {% elif d[0]=='KD' %}background:#ea580c;
+        {% elif d[0]=='KP' %}background:#db2777;
+        {% endif %}
+    ">
+
+        <div style="font-size:26px;margin-bottom:15px;">
+            {{ d[1] }} ({{ d[0] }})
         </div>
-    </a>
 
-    <a href="/labour-details/LK" style="text-decoration:none;">
-        <div style="background:#16a34a;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
-            LAKSHMANNA (LK)
+        <div style="font-size:18px;">
+            Total Sadaram: {{ "%.3f"|format(d[2]) }}
         </div>
-    </a>
 
-    <a href="/labour-details/KD" style="text-decoration:none;">
-        <div style="background:#ea580c;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
-            KONDAYYA (KD)
+        <div style="font-size:18px;margin-top:8px;">
+            Advance Given: ₹ {{ "%.2f"|format(d[3]) }}
         </div>
-    </a>
 
-    <a href="/labour-details/KP" style="text-decoration:none;">
-        <div style="background:#db2777;color:white;padding:30px;border-radius:12px;text-align:center;font-size:20px;font-weight:bold;">
-            KUPENDRA (KP)
-        </div>
-    </a>
+    </div>
+</a>
+{% endfor %}
 
 </div>
 

@@ -199,7 +199,40 @@ def credit_report():
 @app.route("/labour-dashboard")
 @login_required
 def labour_dashboard():
-    return render_template("labour_dashboard.html")
+    conn = get_db()
+    c = conn.cursor()
+
+    groups = {
+        "SV": "SIVANNA",
+        "LK": "LAKSHMANNA",
+        "KD": "KONDAYYA",
+        "KP": "KUPENDRA"
+    }
+
+    data = []
+
+    for code, name in groups.items():
+
+        # Total Sadaram produced
+        c.execute("""
+            SELECT COALESCE(SUM(sadaram),0)
+            FROM truck_sales
+            WHERE labour_group_code=%s
+        """, (code,))
+        sadaram = c.fetchone()[0]
+
+        # Total Advance given
+        c.execute("""
+            SELECT COALESCE(SUM(amount),0)
+            FROM labour_payments
+            WHERE labour_group_code=%s AND type='advance'
+        """, (code,))
+        advance = c.fetchone()[0]
+
+        data.append((code, name, sadaram, advance))
+
+    conn.close()
+    return render_template("labour_dashboard.html", data=data)
 
 
 @app.route("/labour-details/<code>")
