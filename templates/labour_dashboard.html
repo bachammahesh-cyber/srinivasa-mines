@@ -1,72 +1,51 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:25px;">👷 Labour Dashboard</h2>
+<h2 style="margin-bottom:20px;">👷 Labour Dashboard</h2>
 
-<div style="
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:25px;
-    position:relative;
-">
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:25px;">
 
-    {% for r in rows %}
-
-    <a href="/labour-details/{{ r[0] }}" style="text-decoration:none;">
+    {% for g in groups %}
+    <a href="/labour-details/{{ g.code }}" style="text-decoration:none;">
         <div style="
-            background:{{ r[4] }};
+            background: {{ g.color }};
             color:white;
-            padding:35px 20px;
+            padding:35px;
             border-radius:16px;
-            text-align:center;
-            box-shadow:0 10px 25px rgba(0,0,0,0.15);
-            transition:0.2s;
+            box-shadow:0 8px 18px rgba(0,0,0,0.15);
         ">
-
-            <div style="font-size:22px;font-weight:bold;margin-bottom:12px;">
-                {{ r[1] }} ({{ r[0] }})
-            </div>
-
-            <div style="font-size:18px;margin-bottom:6px;">
-                Sadaram: {{ "%.3f"|format(r[2]) }}
-            </div>
-
-            <div style="font-size:18px;">
-                Advance: ₹ {{ "%.2f"|format(r[3]) }}
-            </div>
-
+            <h2 style="margin:0 0 10px 0;">{{ g.name }}</h2>
+            <p style="margin:6px 0;font-size:18px;">
+                Total Sadaram: <b>{{ "%.2f"|format(g.sadaram) }}</b>
+            </p>
+            <p style="margin:6px 0;font-size:18px;">
+                Advance Paid: <b>{{ "%.2f"|format(g.advance) }}</b>
+            </p>
         </div>
     </a>
-
     {% endfor %}
 
 </div>
 
-<!-- ROUND PAY BUTTON -->
-
-<div style="
+<!-- PAY ADVANCE CIRCLE -->
+<a href="/pay-labour" style="
     position:fixed;
-    bottom:35px;
-    right:35px;
+    bottom:90px;
+    right:40px;
+    width:110px;
+    height:110px;
+    background:#0f172a;
+    color:white;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-weight:bold;
+    text-decoration:none;
+    box-shadow:0 8px 18px rgba(0,0,0,0.3);
 ">
-    <a href="/pay-labour" style="text-decoration:none;">
-        <div style="
-            width:90px;
-            height:90px;
-            border-radius:50%;
-            background:#111827;
-            color:white;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:14px;
-            font-weight:bold;
-            text-align:center;
-            box-shadow:0 10px 25px rgba(0,0,0,0.25);
-        ">
-            PAY<br>ADVANCE
-        </div>
-    </a>
-</div>
+    PAY<br>ADVANCE
+</a>
 
 {% endblock %}
