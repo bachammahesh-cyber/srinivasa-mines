@@ -19,6 +19,7 @@ def init_db():
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS truck_sales(
+        id SERIAL PRIMARY KEY,
         date DATE,
         vehicle_no TEXT,
         buyer_name TEXT,
@@ -120,7 +121,9 @@ def truck_entry():
         date = datetime.now().date()
 
         c.execute("""
-        INSERT INTO truck_sales VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+        INSERT INTO truck_sales(date, vehicle_no, buyer_name, labour_group_code,
+                                sadaram, total_amount, paid, balance)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """, (date, vehicle, buyer, labour_code, sadaram, total, paid, balance))
 
         conn.commit()
@@ -156,7 +159,7 @@ def pay_labour():
     return render_template("pay_labour.html")
 
 
-# ---------------- SALES REPORT ----------------
+# ---------------- SALES REPORT (UPDATED) ----------------
 @app.route("/sales-report")
 @login_required
 def sales_report():
@@ -164,7 +167,7 @@ def sales_report():
     c = conn.cursor()
 
     c.execute("""
-        SELECT date, vehicle_no, buyer_name, labour_group_code,
+        SELECT id, date, vehicle_no, buyer_name, labour_group_code,
                sadaram, total_amount, paid, balance
         FROM truck_sales
         ORDER BY date DESC
@@ -173,7 +176,8 @@ def sales_report():
     rows = c.fetchall()
     conn.close()
 
-    return render_template("sales_report.html", rows=rows)
+    is_owner = session.get("role") == "owner"
+    return render_template("sales_report.html", rows=rows, is_owner=is_owner)
 
 
 # ---------------- CREDIT REPORT ----------------
@@ -195,7 +199,7 @@ def credit_report():
     return render_template("credit_report.html", rows=rows)
 
 
-# ---------------- LABOUR DASHBOARD (FIXED) ----------------
+# ---------------- LABOUR DASHBOARD ----------------
 @app.route("/labour-dashboard")
 @login_required
 def labour_dashboard():
@@ -264,11 +268,50 @@ def labour_details(code):
     return render_template("labour_details.html", rows=rows)
 
 
-# ---------------- BUYER DASHBOARD ----------------
-@app.route("/buyer-dashboard")
+# ---------------- OWNER EDIT / DELETE ----------------
+@app.route("/edit-entry/<int:entry_id>", methods=["GET", "POST"])
 @login_required
-def buyer_dashboard():
-    return render_template("buyer_dashboard.html")
+def edit_entry(entry_id):
+    if session.get("role") != "owner":
+        return redirect("/dashboard")
+
+    conn = get_db()
+    c = conn.cursor()
+
+    if request.method == "POST":
+        paid = float(request.form["paid"])
+
+        c.execute("""
+            UPDATE truck_sales
+            SET paid=%s,
+                balance = total_amount - %s
+            WHERE id=%s
+        """, (paid, paid, entry_id))
+
+        conn.commit()
+        conn.close()
+        return redirect("/sales-report")
+
+    c.execute("SELECT * FROM truck_sales WHERE id=%s", (entry_id,))
+    row = c.fetchone()
+    conn.close()
+
+    return render_template("edit_entry.html", row=row)
+
+
+@app.route("/delete-entry/<int:entry_id>")
+@login_required
+def delete_entry(entry_id):
+    if session.get("role") != "owner":
+        return redirect("/dashboard")
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM truck_sales WHERE id=%s", (entry_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/sales-report")
 
 
 # ---------------- PORT ----------------

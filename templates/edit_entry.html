@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>✏ Edit Entry</h2>
+
+<form method="POST">
+    <p><b>Vehicle:</b> {{ row[2] }}</p>
+    <p><b>Buyer:</b> {{ row[3] }}</p>
+    <p><b>Total Amount:</b> {{ row[6] }}</p>
+
+    <label>Paid Amount</label>
+    <input type="number" step="0.01" name="paid" value="{{ row[7] }}" required>
+
+    <button type="submit">Update</button>
+</form>
+
+{% endblock %}

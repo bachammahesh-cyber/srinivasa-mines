@@ -1,44 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:20px;">📊 Sales Records</h2>
+<h2>📊 Sales Records</h2>
 
-<div style="overflow-x:auto;">
-<table style="width:100%;border-collapse:collapse;background:white;">
-    <tr style="background:#111827;color:white;">
-        <th style="padding:12px;">Date</th>
-        <th style="padding:12px;">Vehicle</th>
-        <th style="padding:12px;">Buyer</th>
-        <th style="padding:12px;">Labour</th>
-        <th style="padding:12px;">Sadaram</th>
-        <th style="padding:12px;">Total Amount</th>
-        <th style="padding:12px;">Paid</th>
-        <th style="padding:12px;">Balance</th>
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Vehicle</th>
+        <th>Buyer</th>
+        <th>Labour</th>
+        <th>Sadaram</th>
+        <th>Total</th>
+        <th>Paid</th>
+        <th>Balance</th>
+        {% if owner %}
+        <th>Action</th>
+        {% endif %}
     </tr>
 
     {% for r in rows %}
-    <tr style="text-align:center;border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px;">{{ r[0] }}</td>
-        <td style="padding:10px;">{{ r[1] }}</td>
-        <td style="padding:10px;">{{ r[2] }}</td>
-        <td style="padding:10px;">{{ r[3] }}</td>
-        <td style="padding:10px;">{{ "%.2f"|format(r[4]) }}</td>
-        <td style="padding:10px;">{{ "%.2f"|format(r[5]) }}</td>
-        <td style="padding:10px;">{{ "%.2f"|format(r[6]) }}</td>
-        <td style="padding:10px;">{{ "%.2f"|format(r[7]) }}</td>
+    <tr>
+        <td>{{ r[1] }}</td>
+        <td>{{ r[2] }}</td>
+        <td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td>
+        <td>{{ "%.3f"|format(r[5]) }}</td>
+        <td>{{ "%.2f"|format(r[6]) }}</td>
+        <td>{{ "%.2f"|format(r[7]) }}</td>
+        <td>{{ "%.2f"|format(r[8]) }}</td>
+
+        {% if owner %}
+        <td>
+            <a href="/edit-entry/{{ r[0] }}">✏ Edit</a> |
+            <a href="/delete-entry/{{ r[0] }}"
+               onclick="return confirm('Delete this entry?')">🗑 Delete</a>
+        </td>
+        {% endif %}
     </tr>
     {% endfor %}
-
-    <!-- TOTAL ROW -->
-    <tr style="background:#111827;color:white;font-weight:bold;">
-        <td colspan="4" style="padding:12px;text-align:right;">TOTAL</td>
-        <td style="padding:12px;">{{ "%.2f"|format(rows|sum(attribute=4)) }}</td>
-        <td style="padding:12px;">{{ "%.2f"|format(rows|sum(attribute=5)) }}</td>
-        <td style="padding:12px;">{{ "%.2f"|format(rows|sum(attribute=6)) }}</td>
-        <td style="padding:12px;">{{ "%.2f"|format(rows|sum(attribute=7)) }}</td>
-    </tr>
-
 </table>
-</div>
 
 {% endblock %}
