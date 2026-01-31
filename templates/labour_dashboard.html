@@ -13,6 +13,7 @@
             padding:35px;
             border-radius:16px;
             box-shadow:0 8px 18px rgba(0,0,0,0.15);
+            min-height:180px;
         ">
             <h2 style="margin:0 0 10px 0;">{{ g.name }}</h2>
             <p style="margin:6px 0;font-size:18px;">
@@ -25,27 +26,34 @@
     </a>
     {% endfor %}
 
-</div>
+    <!-- SPECIAL PAY ADVANCE CARD -->
+    <a href="/pay-labour" style="text-decoration:none;">
+        <div style="
+            background:#0f172a;
+            color:white;
+            padding:35px;
+            border-radius:16px;
+            border:3px dashed #94a3b8;
+            box-shadow:0 8px 18px rgba(0,0,0,0.25);
+            min-height:180px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            text-align:center;
+            transition:transform 0.2s ease;
+        "
+        onmouseover="this.style.transform='scale(1.04)'"
+        onmouseout="this.style.transform='scale(1)'"
+        >
+            <div style="font-size:42px;margin-bottom:10px;">➕</div>
+            <div style="font-size:22px;font-weight:bold;">PAY ADVANCE</div>
+            <div style="font-size:15px;color:#cbd5e1;margin-top:6px;">
+                Record labour advance payment
+            </div>
+        </div>
+    </a>
 
-<!-- PAY ADVANCE CIRCLE -->
-<a href="/pay-labour" style="
-    position:fixed;
-    bottom:90px;
-    right:40px;
-    width:110px;
-    height:110px;
-    background:#0f172a;
-    color:white;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    font-weight:bold;
-    text-decoration:none;
-    box-shadow:0 8px 18px rgba(0,0,0,0.3);
-">
-    PAY<br>ADVANCE
-</a>
+</div>
 
 {% endblock %}
