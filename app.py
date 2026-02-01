@@ -267,6 +267,34 @@ def labour_details(code):
 
     return render_template("labour_details.html", rows=rows)
 
+# ---------------- RESET LABOUR BOX (OWNER ONLY - SAFE) ----------------
+@app.route("/reset-labour/<code>")
+@login_required
+def reset_labour(code):
+    if session.get("role") != "owner":
+        return redirect("/labour-dashboard")
+
+    conn = get_db()
+    c = conn.cursor()
+
+    # Mark labour as settled by zeroing sadaram impact
+    c.execute("""
+        UPDATE truck_sales
+        SET sadaram = 0
+        WHERE labour_group_code=%s
+    """, (code,))
+
+    # Clear advances
+    c.execute("""
+        DELETE FROM labour_payments
+        WHERE labour_group_code=%s
+    """, (code,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/labour-dashboard")
+
 # ---------------- BUYER DASHBOARD ----------------
 @app.route("/buyer-dashboard")
 @login_required

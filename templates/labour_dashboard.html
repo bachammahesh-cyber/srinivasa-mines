@@ -6,51 +6,65 @@
 <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:25px;">
 
     {% for g in groups %}
-    <a href="/labour-details/{{ g.code }}" style="text-decoration:none;">
-        <div style="
-            background: {{ g.color }};
-            color:white;
-            padding:35px;
-            border-radius:16px;
-            box-shadow:0 8px 18px rgba(0,0,0,0.15);
-            min-height:180px;
-        ">
-            <h2 style="margin:0 0 10px 0;">{{ g.name }}</h2>
+    <div style="
+        background: {{ g.color }};
+        color:white;
+        padding:35px;
+        border-radius:16px;
+        box-shadow:0 8px 18px rgba(0,0,0,0.15);
+        position:relative;
+    ">
+
+        <a href="/labour-details/{{ g.code }}" style="text-decoration:none;color:white;">
+            <h2 style="margin:0 0 12px 0;">{{ g.name }}</h2>
+
             <p style="margin:6px 0;font-size:18px;">
                 Total Sadaram: <b>{{ "%.2f"|format(g.sadaram) }}</b>
             </p>
+
             <p style="margin:6px 0;font-size:18px;">
                 Advance Paid: <b>{{ "%.2f"|format(g.advance) }}</b>
             </p>
-        </div>
-    </a>
+        </a>
+
+        {% if session.role == 'owner' %}
+        <a href="/reset-labour/{{ g.code }}"
+           onclick="return confirm('Are you sure you want to reset this labour group?')"
+           style="
+                position:absolute;
+                bottom:18px;
+                right:18px;
+                padding:8px 14px;
+                background:white;
+                color:black;
+                border-radius:8px;
+                font-weight:bold;
+                text-decoration:none;
+                font-size:14px;
+           ">
+            RESET
+        </a>
+        {% endif %}
+
+    </div>
     {% endfor %}
 
-    <!-- SPECIAL PAY ADVANCE CARD -->
+    <!-- PAY ADVANCE CARD (Distinct style) -->
     <a href="/pay-labour" style="text-decoration:none;">
         <div style="
-            background:#0f172a;
+            background:linear-gradient(135deg,#0f172a,#1e293b);
             color:white;
             padding:35px;
             border-radius:16px;
-            border:3px dashed #94a3b8;
             box-shadow:0 8px 18px rgba(0,0,0,0.25);
-            min-height:180px;
             display:flex;
-            flex-direction:column;
-            justify-content:center;
             align-items:center;
-            text-align:center;
-            transition:transform 0.2s ease;
-        "
-        onmouseover="this.style.transform='scale(1.04)'"
-        onmouseout="this.style.transform='scale(1)'"
-        >
-            <div style="font-size:42px;margin-bottom:10px;">➕</div>
-            <div style="font-size:22px;font-weight:bold;">PAY ADVANCE</div>
-            <div style="font-size:15px;color:#cbd5e1;margin-top:6px;">
-                Record labour advance payment
-            </div>
+            justify-content:center;
+            font-size:22px;
+            font-weight:bold;
+            letter-spacing:1px;
+        ">
+            💰 PAY ADVANCE
         </div>
     </a>
 
