@@ -8,6 +8,7 @@
     gap:18px;
 }
 
+/* ===== COMMON CARD STYLE ===== */
 .labour-card{
     height:220px;
     border-radius:18px;
@@ -24,11 +25,17 @@
     width:85%;
 }
 
+/* ===== TITLE (AUTO SHRINK, NO WRAP) ===== */
 .labour-content h2{
-    margin-bottom:15px;
-    font-size:22px;
+    margin-bottom:18px;
+    color:white;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:clamp(16px, 3.5vw, 22px);
 }
 
+/* ===== STATS ===== */
 .stat{
     display:flex;
     justify-content:space-between;
@@ -36,6 +43,7 @@
     font-size:16px;
 }
 
+/* ===== RESET BUTTON ===== */
 .reset-btn{
     display:inline-block;
     margin-top:12px;
@@ -47,10 +55,15 @@
     text-decoration:none;
 }
 
+/* ===== PAY ADVANCE SPECIAL CARD ===== */
 .pay-card{
     background:#0f172a !important;
     font-size:22px;
     font-weight:bold;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
 }
 </style>
 
@@ -60,17 +73,19 @@
 
     {% for g in groups %}
     <div class="labour-card" style="background: {{ g.color }};">
+
         <div class="labour-content">
-            <a href="/labour-details/{{ g.code }}" style="color:white;text-decoration:none;">
+
+            <a href="/labour-details/{{ g.code }}" style="text-decoration:none;color:white;">
                 <h2>{{ g.name }}</h2>
 
                 <div class="stat">
-                    <span>Total Sadaram</span>
+                    <span>Sadaram</span>
                     <b>{{ "%.2f"|format(g.sadaram) }}</b>
                 </div>
 
                 <div class="stat">
-                    <span>Advance Paid</span>
+                    <span>Advance </span>
                     <b>{{ "%.2f"|format(g.advance) }}</b>
                 </div>
             </a>
@@ -82,13 +97,16 @@
                 RESET
             </a>
             {% endif %}
+
         </div>
     </div>
     {% endfor %}
 
     <!-- PAY ADVANCE CARD -->
-    <a href="/pay-labour" class="labour-card pay-card">
-        💰 PAY ADVANCE
+    <a href="/pay-labour" style="text-decoration:none;">
+        <div class="labour-card pay-card">
+            💰 PAY ADVANCE
+        </div>
     </a>
 
 </div>
