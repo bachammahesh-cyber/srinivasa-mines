@@ -11,52 +11,57 @@
             background:#f3f4f6;
         }
 
-        /* ===== TOP HEADING ===== */
+        /* ===== TOP HEADING (FULL WIDTH FIX) ===== */
         .topbar {
+            width:100%;
             background:#111827;
             color:white;
-            padding:20px 25px;
+            padding:22px 10px;
             text-align:center;
         }
 
         .topbar h1{
             margin:0;
-            font-size:32px;
+            font-size:28px;
             letter-spacing:1px;
         }
 
         /* ===== CONTENT AREA ===== */
         .container {
-            padding:30px;
+            padding:18px;
             padding-bottom:90px; /* space for logout bar */
         }
 
         h2 {
-            margin-bottom:25px;
+            margin-bottom:20px;
             color:#111827;
         }
 
-        /* ===== CARD GRID ===== */
+        /* ===== CARD GRID (MOBILE SAFE) ===== */
         .grid {
             display:grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap:25px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap:18px;
         }
 
         .card {
-            padding:30px 20px;
-            border-radius:12px;
+            padding:24px 16px;
+            border-radius:14px;
             color:white;
-            font-size:20px;
+            font-size:18px;
             font-weight:600;
             text-align:center;
             cursor:pointer;
             transition:0.3s;
             text-decoration:none;
+            min-height:120px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
         }
 
         .card:hover {
-            transform:translateY(-6px);
+            transform:translateY(-4px);
             box-shadow:0 10px 25px rgba(0,0,0,0.15);
         }
 
@@ -72,6 +77,7 @@
             background:white;
             border-radius:8px;
             overflow:hidden;
+            font-size:14px;
         }
 
         th, td {
@@ -86,11 +92,12 @@
         }
 
         input, select, button {
-            padding:8px;
+            padding:10px;
             margin:6px 0;
             border-radius:6px;
             border:1px solid #ccc;
             width:100%;
+            font-size:14px;
         }
 
         button {
