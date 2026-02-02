@@ -3,19 +3,53 @@
 
 <h2 style="margin-bottom:25px;">🧾 Buyer Dashboard</h2>
 
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:25px;max-width:900px;">
+<style>
+.buyer-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+}
 
-    <!-- CREDIT REPORT BOX -->
-    <a href="/credit-report" style="text-decoration:none;">
-        <div style="background:#1e3a8a;color:white;padding:40px;border-radius:14px;text-align:center;font-size:22px;font-weight:bold;">
-            📦 Credit Report
+.buyer-card{
+    height:220px;              /* SAME HEIGHT */
+    border-radius:18px;
+    color:white;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    box-shadow:0 8px 18px rgba(0,0,0,0.15);
+    padding:20px;
+}
+
+.buyer-card h2{
+    font-size:24px;
+    margin:0;
+}
+
+.credit{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+}
+
+.receive{
+    background:linear-gradient(135deg,#16a34a,#15803d);
+}
+</style>
+
+<div class="buyer-grid">
+
+    <a href="/credit-report" class="buyer-card credit">
+        <div>
+            📦<br><br>
+            <h2>Credit Report</h2>
         </div>
     </a>
 
-    <!-- RECEIVE PAYMENT BOX -->
-    <a href="/receive-buyer-payment" style="text-decoration:none;">
-        <div style="background:#059669;color:white;padding:40px;border-radius:14px;text-align:center;font-size:22px;font-weight:bold;">
-            💰 Receive Buyer Payment
+    <a href="/receive-buyer-payment" class="buyer-card receive">
+        <div>
+            💰<br><br>
+            <h2>Receive Buyer Payment</h2>
         </div>
     </a>
 
