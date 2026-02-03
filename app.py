@@ -122,9 +122,9 @@ def truck_entry():
 
         c.execute("""
         INSERT INTO truck_sales(date, vehicle_no, buyer_name, labour_group_code,
-                                stones, sadaram, total_amount, paid, balance)
+                                sadaram, total_amount, paid, balance, pieces)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (date, vehicle, buyer, labour_code, pieces, sadaram, total, paid, balance))
+        """, (date, vehicle, buyer, labour_code, sadaram, total, paid, balance, pieces))
 
         conn.commit()
         conn.close()
@@ -168,7 +168,7 @@ def sales_report():
 
     c.execute("""
         SELECT id, date, vehicle_no, buyer_name, labour_group_code,
-               stones, sadaram, total_amount, paid, balance
+               pieces, sadaram, total_amount, paid, balance
         FROM truck_sales
         ORDER BY date DESC
     """)
