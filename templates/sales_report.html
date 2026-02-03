@@ -5,35 +5,39 @@
 
 <table>
     <tr>
+        <th>ID</th>
         <th>Date</th>
         <th>Vehicle</th>
         <th>Buyer</th>
         <th>Labour</th>
+        <th>Stones</th>
         <th>Sadaram</th>
         <th>Total</th>
         <th>Paid</th>
         <th>Balance</th>
-        {% if owner %}
-        <th>Action</th>
+        {% if is_owner %}
+        <th>Actions</th>
         {% endif %}
     </tr>
 
     {% for r in rows %}
     <tr>
+        <td>{{ r[0] }}</td>
         <td>{{ r[1] }}</td>
         <td>{{ r[2] }}</td>
         <td>{{ r[3] }}</td>
         <td>{{ r[4] }}</td>
-        <td>{{ "%.3f"|format(r[5]) }}</td>
+        <td>{{ r[5] }}</td> <!-- Stones -->
         <td>{{ "%.2f"|format(r[6]) }}</td>
         <td>{{ "%.2f"|format(r[7]) }}</td>
         <td>{{ "%.2f"|format(r[8]) }}</td>
+        <td>{{ "%.2f"|format(r[9]) }}</td>
 
-        {% if owner %}
+        {% if is_owner %}
         <td>
-            <a href="/edit-entry/{{ r[0] }}">✏ Edit</a> |
+            <a href="/edit-entry/{{ r[0] }}">Edit</a> |
             <a href="/delete-entry/{{ r[0] }}"
-               onclick="return confirm('Delete this entry?')">🗑 Delete</a>
+               onclick="return confirm('Delete this entry?')">Delete</a>
         </td>
         {% endif %}
     </tr>

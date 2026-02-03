@@ -80,12 +80,17 @@
                 <h2>{{ g.name }}</h2>
 
                 <div class="stat">
+                    <span>Stones</span>
+                    <b>{{ g.stones }}</b>
+                </div>
+
+                <div class="stat">
                     <span>Sadaram</span>
                     <b>{{ "%.2f"|format(g.sadaram) }}</b>
                 </div>
 
                 <div class="stat">
-                    <span>Advance </span>
+                    <span>Advance</span>
                     <b>{{ "%.2f"|format(g.advance) }}</b>
                 </div>
             </a>
