@@ -23,11 +23,11 @@
     </tr>
     {% endfor %}
 
-    <!-- TOTAL ROW -->
     <tr style="background:#111827;color:white;font-weight:bold;">
-        <td colspan="3" style="padding:12px;text-align:right;">TOTAL</td>
-        <td style="padding:12px;">{{ rows|sum(attribute=4) }}</td>
-        <td style="padding:12px;">{{ "%.3f"|format(rows|sum(attribute=3)) }}</td>
+        <td colspan="4" style="padding:12px;text-align:right;">TOTAL SADARAM</td>
+        <td style="padding:12px;">
+            {{ "%.3f"|format(rows|sum(attribute=3)) }}
+        </td>
     </tr>
 
 </table>

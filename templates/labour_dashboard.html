@@ -8,7 +8,6 @@
     gap:18px;
 }
 
-/* ===== COMMON CARD STYLE ===== */
 .labour-card{
     height:220px;
     border-radius:18px;
@@ -18,24 +17,20 @@
     align-items:center;
     justify-content:center;
     box-shadow:0 8px 18px rgba(0,0,0,0.15);
-    position:relative;
 }
 
 .labour-content{
     width:85%;
 }
 
-/* ===== TITLE (AUTO SHRINK, NO WRAP) ===== */
 .labour-content h2{
     margin-bottom:18px;
-    color:white;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
     font-size:clamp(16px, 3.5vw, 22px);
 }
 
-/* ===== STATS ===== */
 .stat{
     display:flex;
     justify-content:space-between;
@@ -43,7 +38,6 @@
     font-size:16px;
 }
 
-/* ===== RESET BUTTON ===== */
 .reset-btn{
     display:inline-block;
     margin-top:12px;
@@ -55,7 +49,6 @@
     text-decoration:none;
 }
 
-/* ===== PAY ADVANCE SPECIAL CARD ===== */
 .pay-card{
     background:#0f172a !important;
     font-size:22px;
@@ -63,7 +56,6 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    text-align:center;
 }
 </style>
 
@@ -73,16 +65,9 @@
 
     {% for g in groups %}
     <div class="labour-card" style="background: {{ g.color }};">
-
         <div class="labour-content">
-
             <a href="/labour-details/{{ g.code }}" style="text-decoration:none;color:white;">
                 <h2>{{ g.name }}</h2>
-
-                <div class="stat">
-                    <span>Stones</span>
-                    <b>{{ g.stones }}</b>
-                </div>
 
                 <div class="stat">
                     <span>Sadaram</span>
@@ -97,17 +82,13 @@
 
             {% if session.role == 'owner' %}
             <a href="/reset-labour/{{ g.code }}"
-               onclick="return confirm('Are you sure you want to reset this labour group?')"
-               class="reset-btn">
-                RESET
-            </a>
+               onclick="return confirm('Are you sure?')"
+               class="reset-btn">RESET</a>
             {% endif %}
-
         </div>
     </div>
     {% endfor %}
 
-    <!-- PAY ADVANCE CARD -->
     <a href="/pay-labour" style="text-decoration:none;">
         <div class="labour-card pay-card">
             💰 PAY ADVANCE
