@@ -7,12 +7,15 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = "srinivasa-secret"
 
-# -------- DATE FORMATTER --------
+# ---------- GLOBAL DATE FORMAT ----------
 @app.template_filter('datefmt')
-def datefmt(value):
-    if value:
+def format_date(value):
+    if value is None:
+        return ""
+    try:
         return value.strftime("%d-%m-%y")
-    return ""
+    except:
+        return str(value)
 
 # ---------------- DATABASE ----------------
 def get_db():
