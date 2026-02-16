@@ -10,8 +10,18 @@ app.secret_key = "srinivasa-secret"
 # ---------- GLOBAL DATE FORMAT ----------
 @app.template_filter('datefmt')
 def format_date(value):
-    if value is None:
+    if not value:
         return ""
+
+    # already string (YYYY-MM-DD)
+    if isinstance(value, str):
+        try:
+            d = datetime.strptime(value, "%Y-%m-%d")
+            return d.strftime("%d-%m-%y")
+        except:
+            return value
+
+    # real date object
     try:
         return value.strftime("%d-%m-%y")
     except:
