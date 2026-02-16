@@ -7,6 +7,13 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = "srinivasa-secret"
 
+# -------- DATE FORMATTER --------
+@app.template_filter('datefmt')
+def datefmt(value):
+    if value:
+        return value.strftime("%d-%m-%y")
+    return ""
+
 # ---------------- DATABASE ----------------
 def get_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")

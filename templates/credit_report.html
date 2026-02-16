@@ -14,7 +14,7 @@
 
     {% for r in rows %}
     <tr style="text-align:center;border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px;">{{ r[0] }}</td>
+        <td style="padding:10px;">{{ r[0]|datefmt }}</td>
         <td style="padding:10px;">{{ r[1] }}</td>
         <td style="padding:10px;">{{ r[2] }}</td>
         <td style="padding:10px;">{{ "%.2f"|format(r[3]) }}</td>
