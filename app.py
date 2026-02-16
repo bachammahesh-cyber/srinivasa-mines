@@ -187,7 +187,7 @@ def sales_report():
 
     c.execute("""
         SELECT id, date, vehicle_no, buyer_name, labour_group_code,
-               stone size, pieces, rate, sadaram, total_amount, paid, balance
+               stone_size, pieces, rate, sadaram, total_amount, paid, balance
         FROM truck_sales
         ORDER BY date DESC
     """)
