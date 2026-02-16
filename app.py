@@ -32,7 +32,6 @@ def get_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")
     return psycopg2.connect(DATABASE_URL)
 
-
 def init_db():
     conn = get_db()
     c = conn.cursor()
