@@ -141,7 +141,7 @@ def truck_entry():
 
         c.execute("""
         INSERT INTO truck_sales(date, vehicle_no, buyer_name, labour_group_code,
-                                stone size, rate, sadaram, total_amount, paid, balance, pieces)
+                                stone_size, rate, sadaram, total_amount, paid, balance, pieces)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """, (date, vehicle, buyer, labour_code, stone_code, rate, sadaram, total, paid, balance, pieces))
 
