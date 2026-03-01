@@ -224,9 +224,9 @@ def credit_report():
 
     if request.method == "POST" and session.get("role") == "owner":
         entry_id = int(request.form["entry_id"])
-        amount = float(request.form["amount"]) if request.form["amount"] else 0
-        remark = request.form.get("remark", "")
+        amount = float(request.form["amount"])
 
+        # Get current balance
         c.execute("SELECT balance FROM truck_sales WHERE id=%s", (entry_id,))
         current_balance = c.fetchone()[0]
 
@@ -235,15 +235,14 @@ def credit_report():
         c.execute("""
             UPDATE truck_sales
             SET paid = paid + %s,
-                balance = balance - %s,
-                remarks = %s
+                balance = balance - %s
             WHERE id=%s
-        """, (deduction, deduction, remark, entry_id))
+        """, (deduction, deduction, entry_id))
 
         conn.commit()
 
     c.execute("""
-        SELECT id, date, buyer_name, balance, remarks
+        SELECT id, date, buyer_name, balance
         FROM truck_sales
         WHERE balance > 0
         ORDER BY date ASC
