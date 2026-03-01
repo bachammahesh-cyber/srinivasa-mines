@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Truck Entry</h2>
+<h2 style="margin-bottom:20px;">🚚 Truck Entry</h2>
 
-<form method="POST">
-
-    <label>Supervisor</label>
-    <select name="supervisor" required>
-        <option value="">Select Supervisor</option>
-        <option value="BALESH">BALESH</option>
-        <option value="ELISHA">ELISHA</option>
-    </select>
+<form method="POST" style="
+    max-width:500px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+">
 
     <label>Labour Group</label>
-    <select name="labour_code" required>
+    <select name="labour_code" required style="padding:8px;">
         <option value="">Select Labour Group</option>
         <option value="SV">Sivanna (SV)</option>
         <option value="KP">Kupendra (KP)</option>
@@ -22,10 +24,10 @@
     </select>
 
     <label>Buyer Name</label>
-    <input type="text" name="buyer" required>
+    <input type="text" name="buyer" required style="padding:8px;">
 
     <label>Stone Size</label>
-    <select name="stone_code" required>
+    <select name="stone_code" required style="padding:8px;">
         <option value="">Select Size</option>
         <option value="2x2">2ft x 2ft</option>
         <option value="3x2">3ft x 2ft</option>
@@ -36,15 +38,26 @@
     </select>
 
     <label>No. of Pieces</label>
-    <input type="number" name="pieces" required>
+    <input type="number" name="pieces" required style="padding:8px;">
 
     <label>Rate</label>
-    <input type="number" step="0.01" name="rate" required>
+    <input type="number" step="0.01" name="rate" required style="padding:8px;">
 
     <label>Paid Amount</label>
-    <input type="number" step="0.01" name="paid" required>
+    <input type="number" step="0.01" name="paid" value="0" required style="padding:8px;">
 
-    <button type="submit">Submit</button>
+    <button type="submit" style="
+        margin-top:10px;
+        padding:10px;
+        background:#111827;
+        color:white;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        font-weight:bold;
+    ">
+        Submit Entry
+    </button>
 
 </form>
 
