@@ -13,7 +13,6 @@ def format_date(value):
     if not value:
         return ""
 
-    # already string (YYYY-MM-DD)
     if isinstance(value, str):
         try:
             d = datetime.strptime(value, "%Y-%m-%d")
@@ -21,16 +20,17 @@ def format_date(value):
         except:
             return value
 
-    # real date object
     try:
         return value.strftime("%d-%m-%y")
     except:
         return str(value)
 
+
 # ---------------- DATABASE ----------------
 def get_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")
     return psycopg2.connect(DATABASE_URL)
+
 
 def init_db():
     conn = get_db()
@@ -43,10 +43,14 @@ def init_db():
         vehicle_no TEXT,
         buyer_name TEXT,
         labour_group_code TEXT,
+        stone_size TEXT,
+        pieces INTEGER,
+        rate DOUBLE PRECISION,
         sadaram DOUBLE PRECISION,
         total_amount DOUBLE PRECISION,
         paid DOUBLE PRECISION,
-        balance DOUBLE PRECISION
+        balance DOUBLE PRECISION,
+        remarks TEXT
     );
     """)
 
@@ -64,6 +68,7 @@ def init_db():
 
 init_db()
 
+
 # ---------------- LOGIN ----------------
 def login_required(f):
     @wraps(f)
@@ -80,10 +85,12 @@ def login():
         u = request.form["username"]
         p = request.form["password"]
 
+        # OWNER
         if u == "maheshreddy" and p == "9440984550":
             session["role"] = "owner"
             return redirect("/dashboard")
 
+        # SUPERVISORS
         if u == "balesh" and p == "9010120863":
             session["role"] = "supervisor"
             return redirect("/dashboard")
@@ -140,10 +147,17 @@ def truck_entry():
         date = datetime.now().date()
 
         c.execute("""
-        INSERT INTO truck_sales(date, vehicle_no, buyer_name, labour_group_code,
-                                stone_size, rate, sadaram, total_amount, paid, balance, pieces)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (date, vehicle, buyer, labour_code, stone_code, rate, sadaram, total, paid, balance, pieces))
+        INSERT INTO truck_sales(
+            date, vehicle_no, buyer_name, labour_group_code,
+            stone_size, pieces, rate,
+            sadaram, total_amount, paid, balance, remarks
+        )
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            date, vehicle, buyer, labour_code,
+            stone_code, pieces, rate,
+            sadaram, total, paid, balance, ""
+        ))
 
         conn.commit()
         conn.close()
@@ -167,18 +181,19 @@ def pay_labour():
         ptype = request.form["ptype"]
 
         c.execute("""
-            INSERT INTO labour_payments VALUES (%s,%s,%s,%s)
+            INSERT INTO labour_payments (date, labour_group_code, amount, type)
+            VALUES (%s,%s,%s,%s)
         """, (date, labour, amount, ptype))
 
         conn.commit()
         conn.close()
 
-        return redirect("/dashboard")
+        return redirect("/labour-dashboard")
 
     return render_template("pay_labour.html")
 
 
-# ---------------- SALES REPORT (UPDATED) ----------------
+# ---------------- SALES REPORT ----------------
 @app.route("/sales-report")
 @login_required
 def sales_report():
@@ -187,7 +202,8 @@ def sales_report():
 
     c.execute("""
         SELECT id, date, vehicle_no, buyer_name, labour_group_code,
-               stone_size, pieces, rate, sadaram, total_amount, paid, balance
+               stone_size, pieces, rate,
+               sadaram, total_amount, paid, balance
         FROM truck_sales
         ORDER BY date DESC
     """)
@@ -199,58 +215,45 @@ def sales_report():
     return render_template("sales_report.html", rows=rows, is_owner=is_owner)
 
 
-# ---------------- CREDIT REPORT (WITH RECEIVE PAYMENT) ----------------
+# ---------------- CREDIT REPORT ----------------
 @app.route("/credit-report", methods=["GET", "POST"])
 @login_required
 def credit_report():
     conn = get_db()
     c = conn.cursor()
 
-    if request.method == "POST":
-        buyer = request.form["buyer"]
-        amount = float(request.form["amount"])
+    if request.method == "POST" and session.get("role") == "owner":
+        entry_id = int(request.form["entry_id"])
+        amount = float(request.form["amount"]) if request.form["amount"] else 0
+        remark = request.form.get("remark", "")
 
-        # Reduce oldest balances first
+        c.execute("SELECT balance FROM truck_sales WHERE id=%s", (entry_id,))
+        current_balance = c.fetchone()[0]
+
+        deduction = min(current_balance, amount)
+
         c.execute("""
-            SELECT id, balance
-            FROM truck_sales
-            WHERE buyer_name=%s AND balance > 0
-            ORDER BY date ASC
-        """, (buyer,))
-
-        rows = c.fetchall()
-        remaining = amount
-
-        for row in rows:
-            if remaining <= 0:
-                break
-
-            entry_id, bal = row
-            deduction = min(bal, remaining)
-
-            c.execute("""
-                UPDATE truck_sales
-                SET balance = balance - %s,
-                    paid = paid + %s
-                WHERE id=%s
-            """, (deduction, deduction, entry_id))
-
-            remaining -= deduction
+            UPDATE truck_sales
+            SET paid = paid + %s,
+                balance = balance - %s,
+                remarks = %s
+            WHERE id=%s
+        """, (deduction, deduction, remark, entry_id))
 
         conn.commit()
 
-    # Fetch updated credit list
     c.execute("""
-        SELECT buyer_name, SUM(balance) as due
+        SELECT id, date, buyer_name, balance, remarks
         FROM truck_sales
         WHERE balance > 0
-        GROUP BY buyer_name
-        ORDER BY buyer_name
+        ORDER BY date ASC
     """)
-    rows = c.fetchall()
 
+    rows = c.fetchall()
     conn.close()
-    return render_template("credit_report.html", rows=rows)
+
+    is_owner = session.get("role") == "owner"
+    return render_template("credit_report.html", rows=rows, is_owner=is_owner)
 
 
 # ---------------- LABOUR DASHBOARD ----------------
@@ -303,60 +306,7 @@ def labour_dashboard():
     return render_template("labour_dashboard.html", groups=groups_list)
 
 
-@app.route("/labour-details/<code>")
-@login_required
-def labour_details(code):
-    conn = get_db()
-    c = conn.cursor()
-
-    c.execute("""
-        SELECT date, vehicle_no, buyer_name, sadaram, pieces
-        FROM truck_sales
-        WHERE labour_group_code=%s
-        ORDER BY date DESC
-    """, (code,))
-
-    rows = c.fetchall()
-    conn.close()
-
-    return render_template("labour_details.html", rows=rows)
-
-# ---------------- RESET LABOUR BOX (OWNER ONLY - SAFE) ----------------
-@app.route("/reset-labour/<code>")
-@login_required
-def reset_labour(code):
-    if session.get("role") != "owner":
-        return redirect("/labour-dashboard")
-
-    conn = get_db()
-    c = conn.cursor()
-
-    # Mark labour as settled by zeroing sadaram impact
-    c.execute("""
-        UPDATE truck_sales
-        SET sadaram = 0
-        WHERE labour_group_code=%s
-    """, (code,))
-
-    # Clear advances
-    c.execute("""
-        DELETE FROM labour_payments
-        WHERE labour_group_code=%s
-    """, (code,))
-
-    conn.commit()
-    conn.close()
-
-    return redirect("/labour-dashboard")
-
-# ---------------- BUYER DASHBOARD ----------------
-@app.route("/buyer-dashboard")
-@login_required
-def buyer_dashboard():
-    return render_template("buyer_dashboard.html")
-
-
-# ---------------- OWNER EDIT / DELETE ----------------
+# ---------------- EDIT ENTRY ----------------
 @app.route("/edit-entry/<int:entry_id>", methods=["GET", "POST"])
 @login_required
 def edit_entry(entry_id):
@@ -387,6 +337,7 @@ def edit_entry(entry_id):
     return render_template("edit_entry.html", row=row)
 
 
+# ---------------- DELETE ENTRY ----------------
 @app.route("/delete-entry/<int:entry_id>")
 @login_required
 def delete_entry(entry_id):
