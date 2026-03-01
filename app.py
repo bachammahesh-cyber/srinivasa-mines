@@ -199,22 +199,57 @@ def sales_report():
     return render_template("sales_report.html", rows=rows, is_owner=is_owner)
 
 
-# ---------------- CREDIT REPORT ----------------
-@app.route("/credit-report")
+# ---------------- CREDIT REPORT (WITH RECEIVE PAYMENT) ----------------
+@app.route("/credit-report", methods=["GET", "POST"])
 @login_required
 def credit_report():
     conn = get_db()
     c = conn.cursor()
 
+    if request.method == "POST":
+        buyer = request.form["buyer"]
+        amount = float(request.form["amount"])
+
+        # Reduce oldest balances first
+        c.execute("""
+            SELECT id, balance
+            FROM truck_sales
+            WHERE buyer_name=%s AND balance > 0
+            ORDER BY date ASC
+        """, (buyer,))
+
+        rows = c.fetchall()
+        remaining = amount
+
+        for row in rows:
+            if remaining <= 0:
+                break
+
+            entry_id, bal = row
+            deduction = min(bal, remaining)
+
+            c.execute("""
+                UPDATE truck_sales
+                SET balance = balance - %s,
+                    paid = paid + %s
+                WHERE id=%s
+            """, (deduction, deduction, entry_id))
+
+            remaining -= deduction
+
+        conn.commit()
+
+    # Fetch updated credit list
     c.execute("""
-        SELECT date, vehicle_no, buyer_name, balance
+        SELECT buyer_name, SUM(balance) as due
         FROM truck_sales
         WHERE balance > 0
-        ORDER BY date ASC
+        GROUP BY buyer_name
+        ORDER BY buyer_name
     """)
     rows = c.fetchall()
-    conn.close()
 
+    conn.close()
     return render_template("credit_report.html", rows=rows)
 
 
@@ -319,62 +354,6 @@ def reset_labour(code):
 @login_required
 def buyer_dashboard():
     return render_template("buyer_dashboard.html")
-
-
-# ---------------- RECEIVE BUYER PAYMENT ----------------
-@app.route("/receive-buyer-payment", methods=["GET", "POST"])
-@login_required
-def receive_buyer_payment():
-    conn = get_db()
-    c = conn.cursor()
-
-    # Get buyers who still have balance
-    c.execute("""
-        SELECT buyer_name, SUM(balance) as due
-        FROM truck_sales
-        WHERE balance > 0
-        GROUP BY buyer_name
-        ORDER BY buyer_name
-    """)
-    buyers = c.fetchall()
-
-    if request.method == "POST":
-        buyer = request.form["buyer"]
-        amount = float(request.form["amount"])
-
-        # Reduce from oldest credits first
-        c.execute("""
-            SELECT date, balance
-            FROM truck_sales
-            WHERE buyer_name=%s AND balance>0
-            ORDER BY date ASC
-        """, (buyer,))
-
-        rows = c.fetchall()
-        remaining = amount
-
-        for r in rows:
-            if remaining <= 0:
-                break
-
-            row_date, bal = r
-            deduction = min(bal, remaining)
-
-            c.execute("""
-                UPDATE truck_sales
-                SET balance = balance - %s,
-                    paid = paid + %s
-                WHERE buyer_name=%s AND date=%s
-            """, (deduction, deduction, buyer, row_date))
-
-            remaining -= deduction
-
-        conn.commit()
-        conn.close()
-        return redirect("/buyer-dashboard")
-
-    conn.close()
-    return render_template("receive_buyer_payment.html", buyers=buyers)
 
 
 # ---------------- OWNER EDIT / DELETE ----------------

@@ -1,17 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>✏ Edit Entry</h2>
+<h2 style="margin-bottom:20px;">📑 Credit Report</h2>
 
-<form method="POST">
-    <p><b>Vehicle:</b> {{ row[2] }}</p>
-    <p><b>Buyer:</b> {{ row[3] }}</p>
-    <p><b>Total Amount:</b> {{ row[6] }}</p>
+<div style="overflow-x:auto;">
+<table style="width:100%;border-collapse:collapse;background:white;">
+    <tr style="background:#111827;color:white;">
+        <th style="padding:12px;">Buyer</th>
+        <th style="padding:12px;">Total Due</th>
+        <th style="padding:12px;">Receive Payment</th>
+    </tr>
 
-    <label>Paid Amount</label>
-    <input type="number" step="0.01" name="paid" value="{{ row[7] }}" required>
+    {% for r in rows %}
+    <tr style="text-align:center;border-bottom:1px solid #e5e7eb;">
+        <td style="padding:10px;">{{ r[0] }}</td>
+        <td style="padding:10px;">{{ "%.2f"|format(r[1]) }}</td>
+        <td style="padding:10px;">
+            <form method="POST" style="display:flex;justify-content:center;gap:8px;">
+                <input type="hidden" name="buyer" value="{{ r[0] }}">
+                <input type="number" name="amount" step="0.01" placeholder="Amount" required style="width:120px;padding:6px;">
+                <button type="submit" style="padding:6px 12px;background:#16a34a;color:white;border:none;border-radius:6px;">
+                    Receive
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
 
-    <button type="submit">Update</button>
-</form>
+    <tr style="background:#111827;color:white;font-weight:bold;">
+        <td style="padding:12px;text-align:right;">TOTAL DUE</td>
+        <td style="padding:12px;">
+            {{ "%.2f"|format(rows|sum(attribute=1)) }}
+        </td>
+        <td></td>
+    </tr>
+
+</table>
+</div>
 
 {% endblock %}
