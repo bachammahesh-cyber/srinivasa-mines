@@ -124,7 +124,6 @@ def truck_entry():
         c = conn.cursor()
 
         labour_code = request.form["labour_code"]
-        vehicle = request.form["vehicle"]
         buyer = request.form["buyer"]
         stone_code = request.form["stone_code"]
         pieces = int(request.form["pieces"])
@@ -148,13 +147,13 @@ def truck_entry():
 
         c.execute("""
         INSERT INTO truck_sales(
-            date, vehicle_no, buyer_name, labour_group_code,
+            date, buyer_name, labour_group_code,
             stone_size, pieces, rate,
             sadaram, total_amount, paid, balance, remarks
         )
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """, (
-            date, vehicle, buyer, labour_code,
+            date, buyer, labour_code,
             stone_code, pieces, rate,
             sadaram, total, paid, balance, ""
         ))
@@ -201,7 +200,7 @@ def sales_report():
     c = conn.cursor()
 
     c.execute("""
-        SELECT id, date, vehicle_no, buyer_name, labour_group_code,
+        SELECT id, date, buyer_name, labour_group_code,
                stone_size, pieces, rate,
                sadaram, total_amount, paid, balance
         FROM truck_sales

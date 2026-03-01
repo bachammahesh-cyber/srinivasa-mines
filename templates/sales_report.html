@@ -7,11 +7,10 @@
     <tr>
         <th>ID</th>
         <th>Date</th>
-        <th>Vehicle</th>
         <th>Buyer</th>
         <th>Labour</th>
-        <th>Size</th>
-        <th>Stones</th>
+        <th>Stone Size</th>
+        <th>Pieces</th>
         <th>Rate</th>
         <th>Sadaram</th>
         <th>Total</th>
@@ -29,15 +28,12 @@
         <td>{{ r[2] }}</td>
         <td>{{ r[3] }}</td>
         <td>{{ r[4] }}</td>
-
-        <td>{{ r[5] or "-" }}</td>        <!-- stone size -->
-        <td>{{ r[6] }}</td>               <!-- pieces -->
-        <td>{{ "%.2f"|format(r[7] or 0) }}</td> <!-- rate -->
-
+        <td>{{ r[5] }}</td>
+        <td>{{ "%.2f"|format(r[6]) }}</td>
+        <td>{{ "%.2f"|format(r[7]) }}</td>
         <td>{{ "%.2f"|format(r[8]) }}</td>
         <td>{{ "%.2f"|format(r[9]) }}</td>
         <td>{{ "%.2f"|format(r[10]) }}</td>
-        <td>{{ "%.2f"|format(r[11]) }}</td>
 
         {% if is_owner %}
         <td>
