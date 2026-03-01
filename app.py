@@ -161,7 +161,10 @@ def truck_entry():
         conn.commit()
         conn.close()
 
-        return render_template("entry_success.html")
+        return render_template(
+            "entry_success.html",
+            invoice_amount=total
+        )
 
     return render_template("truck_entry.html")
 
