@@ -256,6 +256,23 @@ def credit_report():
     is_owner = session.get("role") == "owner"
     return render_template("credit_report.html", rows=rows, is_owner=is_owner)
 
+# ---------------- DELETE CREDIT ENTRY ----------------
+@app.route("/delete-credit/<int:entry_id>")
+@login_required
+def delete_credit(entry_id):
+    if session.get("role") != "owner":
+        return redirect("/credit-report")
+
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("DELETE FROM truck_sales WHERE id=%s", (entry_id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/credit-report")
+
 # ---------------- MANUAL CREDIT ENTRY ----------------
 @app.route("/manual-credit-entry", methods=["GET", "POST"])
 @login_required
