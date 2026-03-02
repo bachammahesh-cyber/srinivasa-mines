@@ -256,6 +256,44 @@ def credit_report():
     is_owner = session.get("role") == "owner"
     return render_template("credit_report.html", rows=rows, is_owner=is_owner)
 
+# ---------------- MANUAL CREDIT ENTRY ----------------
+@app.route("/manual-credit-entry", methods=["GET", "POST"])
+@login_required
+def manual_credit_entry():
+    if session.get("role") != "owner":
+        return redirect("/credit-report")
+
+    if request.method == "POST":
+        conn = get_db()
+        c = conn.cursor()
+
+        buyer = request.form["buyer"]
+        amount = float(request.form["amount"])
+        remarks = request.form.get("remarks", "")
+
+        date = datetime.now().date()
+
+        # Manual credit entry (no labour, no stones)
+        c.execute("""
+        INSERT INTO truck_sales(
+            date, buyer_name, labour_group_code,
+            stone_size, pieces, rate,
+            sadaram, total_amount, paid, balance, remarks
+        )
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            date, buyer, "MANUAL",
+            "", 0, 0,
+            0, amount, 0, amount, remarks
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/credit-report")
+
+    return render_template("manual_credit_entry.html")
+
 
 # ---------------- LABOUR DASHBOARD ----------------
 @app.route("/labour-dashboard")

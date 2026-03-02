@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 style="margin-bottom:20px;">➕ Manual Credit Entry</h2>
+
+<form method="POST" style="max-width:500px;">
+
+    <label>Creditor / Buyer Name</label>
+    <input type="text" name="buyer" required>
+
+    <label>Amount</label>
+    <input type="number" step="0.01" name="amount" required>
+
+    <label>Remarks (Optional)</label>
+    <input type="text" name="remarks">
+
+    <button type="submit" style="
+        margin-top:15px;
+        padding:10px 16px;
+        background:#111827;
+        color:white;
+        border:none;
+        border-radius:6px;
+        font-weight:bold;
+    ">
+        Save Entry
+    </button>
+
+</form>
+
+{% endblock %}
