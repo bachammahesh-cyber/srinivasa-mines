@@ -450,8 +450,3 @@ def delete_entry(entry_id):
 
     return redirect("/sales-report")
 
-
-# ---------------- PORT ----------------
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
