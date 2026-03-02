@@ -1,41 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 style="margin-bottom:20px;">📑 Credit Report</h2>
+<h2 style="margin-bottom:20px;">✏️ Edit Sales Entry</h2>
 
-<div style="overflow-x:auto;">
-<table style="width:100%;border-collapse:collapse;background:white;">
-    <tr style="background:#111827;color:white;">
-        <th style="padding:12px;">Buyer</th>
-        <th style="padding:12px;">Total Due</th>
-        <th style="padding:12px;">Receive Payment</th>
-    </tr>
+<form method="POST" style="max-width:600px;">
 
-    {% for r in rows %}
-    <tr style="text-align:center;border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px;">{{ r[0] }}</td>
-        <td style="padding:10px;">{{ "%.2f"|format(r[1]) }}</td>
-        <td style="padding:10px;">
-            <form method="POST" style="display:flex;justify-content:center;gap:8px;">
-                <input type="hidden" name="buyer" value="{{ r[0] }}">
-                <input type="number" name="amount" step="0.01" placeholder="Amount" required style="width:120px;padding:6px;">
-                <button type="submit" style="padding:6px 12px;background:#16a34a;color:white;border:none;border-radius:6px;">
-                    Receive
-                </button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+    <label>Date</label>
+    <input type="date" name="date"
+           value="{{ row[1] }}"
+           required>
 
-    <tr style="background:#111827;color:white;font-weight:bold;">
-        <td style="padding:12px;text-align:right;">TOTAL DUE</td>
-        <td style="padding:12px;">
-            {{ "%.2f"|format(rows|sum(attribute=1)) }}
-        </td>
-        <td></td>
-    </tr>
+    <label>Buyer</label>
+    <input type="text" name="buyer"
+           value="{{ row[2] }}"
+           required>
 
-</table>
-</div>
+    <label>Labour Group</label>
+    <select name="labour" required>
+        <option value="SV" {% if row[3]=='SV' %}selected{% endif %}>Sivanna (SV)</option>
+        <option value="KP" {% if row[3]=='KP' %}selected{% endif %}>Kupendra (KP)</option>
+        <option value="LK" {% if row[3]=='LK' %}selected{% endif %}>Lakshmanna (LK)</option>
+        <option value="KD" {% if row[3]=='KD' %}selected{% endif %}>Kondayya (KD)</option>
+    </select>
+
+    <label>Stone Size</label>
+    <select name="stone_size" required>
+        <option value="2x2" {% if row[4]=='2x2' %}selected{% endif %}>2ft x 2ft</option>
+        <option value="3x2" {% if row[4]=='3x2' %}selected{% endif %}>3ft x 2ft</option>
+        <option value="4x2" {% if row[4]=='4x2' %}selected{% endif %}>4ft x 2ft</option>
+        <option value="5x2" {% if row[4]=='5x2' %}selected{% endif %}>5ft x 2ft</option>
+        <option value="6x2" {% if row[4]=='6x2' %}selected{% endif %}>6ft x 2ft</option>
+        <option value="7x2" {% if row[4]=='7x2' %}selected{% endif %}>7ft x 2ft</option>
+    </select>
+
+    <label>Pieces</label>
+    <input type="number" name="pieces"
+           value="{{ row[5] }}"
+           required>
+
+    <label>Rate</label>
+    <input type="number" step="0.01" name="rate"
+           value="{{ row[6] }}"
+           required>
+
+    <label>Paid</label>
+    <input type="number" step="0.01" name="paid"
+           value="{{ row[7] }}"
+           required>
+
+    <button type="submit" style="
+        margin-top:20px;
+        padding:10px 18px;
+        background:#111827;
+        color:white;
+        border:none;
+        border-radius:6px;
+        font-weight:bold;
+    ">
+        Update Entry
+    </button>
+
+</form>
 
 {% endblock %}

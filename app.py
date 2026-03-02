@@ -345,7 +345,7 @@ def labour_dashboard():
     return render_template("labour_dashboard.html", groups=groups_list)
 
 
-# ---------------- EDIT ENTRY ----------------
+# ---------------- FULL EDIT ENTRY ----------------
 @app.route("/edit-entry/<int:entry_id>", methods=["GET", "POST"])
 @login_required
 def edit_entry(entry_id):
@@ -356,21 +356,63 @@ def edit_entry(entry_id):
     c = conn.cursor()
 
     if request.method == "POST":
+        date = request.form["date"]
+        buyer = request.form["buyer"]
+        labour = request.form["labour"]
+        stone_size = request.form["stone_size"]
+        pieces = int(request.form["pieces"])
+        rate = float(request.form["rate"])
         paid = float(request.form["paid"])
+
+        stone_sizes = {
+            "2x2": 4,
+            "3x2": 6,
+            "4x2": 8,
+            "5x2": 10,
+            "6x2": 12,
+            "7x2": 14
+        }
+
+        feet = pieces * stone_sizes.get(stone_size, 0)
+        sadaram = (feet / 100) * 0.98
+        total = sadaram * rate
+        balance = total - paid
 
         c.execute("""
             UPDATE truck_sales
-            SET paid=%s,
-                balance = total_amount - %s
+            SET date=%s,
+                buyer_name=%s,
+                labour_group_code=%s,
+                stone_size=%s,
+                pieces=%s,
+                rate=%s,
+                sadaram=%s,
+                total_amount=%s,
+                paid=%s,
+                balance=%s
             WHERE id=%s
-        """, (paid, paid, entry_id))
+        """, (
+            date, buyer, labour, stone_size,
+            pieces, rate,
+            sadaram, total,
+            paid, balance,
+            entry_id
+        ))
 
         conn.commit()
         conn.close()
+
         return redirect("/sales-report")
 
-    c.execute("SELECT * FROM truck_sales WHERE id=%s", (entry_id,))
+    # GET request → load existing data
+    c.execute("""
+        SELECT id, date, buyer_name, labour_group_code,
+               stone_size, pieces, rate, paid
+        FROM truck_sales
+        WHERE id=%s
+    """, (entry_id,))
     row = c.fetchone()
+
     conn.close()
 
     return render_template("edit_entry.html", row=row)
