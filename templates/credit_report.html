@@ -38,11 +38,7 @@
         <th style="padding:12px;">Actions</th>
     </tr>
 
-    {% set total_due = 0 %}
-
     {% for r in rows %}
-    {% set total_due = total_due + (r[3] or 0) %}
-
     <tr style="text-align:center;border-bottom:1px solid #e5e7eb;">
 
         <!-- DATE -->
@@ -82,7 +78,6 @@
                            ">
 
                     <button type="submit"
-                            onclick="this.innerText='Received'; this.style.background='#166534';"
                             style="
                                 background:#16a34a;
                                 color:white;

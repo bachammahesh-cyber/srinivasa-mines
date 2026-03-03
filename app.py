@@ -224,37 +224,52 @@ def credit_report():
     conn = get_db()
     c = conn.cursor()
 
+    # -------- HANDLE PAYMENT --------
     if request.method == "POST" and session.get("role") == "owner":
         entry_id = int(request.form["entry_id"])
         amount = float(request.form["amount"])
 
         # Get current balance
         c.execute("SELECT balance FROM truck_sales WHERE id=%s", (entry_id,))
-        current_balance = c.fetchone()[0]
+        result = c.fetchone()
 
-        deduction = min(current_balance, amount)
+        if result:
+            current_balance = result[0]
+            deduction = min(current_balance, amount)
 
-        c.execute("""
-            UPDATE truck_sales
-            SET paid = paid + %s,
-                balance = balance - %s
-            WHERE id=%s
-        """, (deduction, deduction, entry_id))
+            c.execute("""
+                UPDATE truck_sales
+                SET paid = paid + %s,
+                    balance = balance - %s
+                WHERE id=%s
+            """, (deduction, deduction, entry_id))
 
-        conn.commit()
+            conn.commit()
 
+    # -------- FETCH CREDIT ROWS --------
     c.execute("""
         SELECT id, date, buyer_name, balance
         FROM truck_sales
         WHERE balance > 0
         ORDER BY date ASC
     """)
-
     rows = c.fetchall()
+
+    # -------- CALCULATE TOTAL DUE (DATABASE SIDE - BEST METHOD) --------
+    c.execute("SELECT SUM(balance) FROM truck_sales WHERE balance > 0")
+    total_due_result = c.fetchone()
+    total_due = total_due_result[0] if total_due_result[0] else 0
+
     conn.close()
 
     is_owner = session.get("role") == "owner"
-    return render_template("credit_report.html", rows=rows, is_owner=is_owner)
+
+    return render_template(
+        "credit_report.html",
+        rows=rows,
+        is_owner=is_owner,
+        total_due=total_due
+    )
 
 # ---------------- DELETE CREDIT ENTRY ----------------
 @app.route("/delete-credit/<int:entry_id>")
