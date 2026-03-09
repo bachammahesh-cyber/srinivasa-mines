@@ -1,8 +1,11 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, send_file
 from functools import wraps
 from datetime import datetime
+from io import BytesIO
 import os
 import psycopg2
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 app.secret_key = "srinivasa-secret"
@@ -399,6 +402,109 @@ def labour_details(code):
     conn.close()
 
     return render_template("labour_details.html", rows=rows)
+
+
+# ---------------- LABOUR DETAILS PDF ----------------
+@app.route("/labour-details/<code>/pdf")
+@login_required
+def labour_details_pdf(code):
+    groups = {
+        "SV": "SIVANNA",
+        "LK": "LAKSHMANNA",
+        "KD": "KONDAYYA",
+        "KP": "KUPENDRA"
+    }
+    code = code.upper()
+
+    if code not in groups:
+        return redirect("/labour-dashboard")
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+        SELECT date, '-' AS vehicle_no, buyer_name, sadaram, stone_size
+        FROM truck_sales
+        WHERE labour_group_code=%s
+        ORDER BY date DESC, id DESC
+    """, (code,))
+    rows = c.fetchall()
+    conn.close()
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 40
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(40, y, f"Labour Group Report - {groups[code]} ({code})")
+
+    y -= 24
+    p.setFont("Helvetica", 10)
+    p.drawString(40, y, f"Generated on: {datetime.now().strftime('%d-%m-%Y %H:%M')}")
+
+    y -= 26
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(40, y, "Date")
+    p.drawString(120, y, "Vehicle")
+    p.drawString(190, y, "Buyer")
+    p.drawString(360, y, "Stone")
+    p.drawRightString(555, y, "Sadaram")
+
+    y -= 10
+    p.line(40, y, 555, y)
+    y -= 16
+
+    p.setFont("Helvetica", 10)
+    total_sadaram = 0.0
+
+    for r in rows:
+        if y < 60:
+            p.showPage()
+            y = height - 40
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(40, y, "Date")
+            p.drawString(120, y, "Vehicle")
+            p.drawString(190, y, "Buyer")
+            p.drawString(360, y, "Stone")
+            p.drawRightString(555, y, "Sadaram")
+            y -= 10
+            p.line(40, y, 555, y)
+            y -= 16
+            p.setFont("Helvetica", 10)
+
+        date_text = format_date(r[0])
+        vehicle = (r[1] or "-")[:12]
+        buyer = (r[2] or "")[:28]
+        stone = (r[4] or "")[:10]
+        sadaram = float(r[3] or 0)
+        total_sadaram += sadaram
+
+        p.drawString(40, y, date_text)
+        p.drawString(120, y, vehicle)
+        p.drawString(190, y, buyer)
+        p.drawString(360, y, stone)
+        p.drawRightString(555, y, f"{sadaram:.3f}")
+        y -= 16
+
+    if y < 70:
+        p.showPage()
+        y = height - 60
+
+    p.setFont("Helvetica-Bold", 11)
+    p.line(40, y, 555, y)
+    y -= 18
+    p.drawRightString(555, y, f"Total Sadaram: {total_sadaram:.3f}")
+
+    p.save()
+    buffer.seek(0)
+
+    filename = f"labour_{code}_{datetime.now().strftime('%Y%m%d')}.pdf"
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/pdf"
+    )
 
 
 # ---------------- RESET LABOUR ADVANCE ----------------
