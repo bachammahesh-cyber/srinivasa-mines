@@ -423,7 +423,7 @@ def labour_details(code):
     conn = get_db()
     c = conn.cursor()
     c.execute("""
-        SELECT date, buyer_name, stone_size, sadaram
+        SELECT date, buyer_name, stone_size, pieces, sadaram
         FROM truck_sales
         WHERE labour_group_code=%s
         ORDER BY date DESC, id DESC
@@ -452,7 +452,7 @@ def labour_details_pdf(code):
     conn = get_db()
     c = conn.cursor()
     c.execute("""
-        SELECT date, buyer_name, stone_size, sadaram
+        SELECT date, buyer_name, stone_size, pieces, sadaram
         FROM truck_sales
         WHERE labour_group_code=%s
         ORDER BY date DESC, id DESC
@@ -477,7 +477,8 @@ def labour_details_pdf(code):
     p.setFont(heading_font, 10)
     p.drawString(40, y, "Date")
     p.drawString(150, y, "Buyer")
-    p.drawString(380, y, "Stone")
+    p.drawString(360, y, "Stone")
+    p.drawString(430, y, "Pieces")
     p.drawRightString(555, y, "Sadaram")
 
     y -= 10
@@ -494,7 +495,8 @@ def labour_details_pdf(code):
             p.setFont(heading_font, 10)
             p.drawString(40, y, "Date")
             p.drawString(150, y, "Buyer")
-            p.drawString(380, y, "Stone")
+            p.drawString(360, y, "Stone")
+            p.drawString(430, y, "Pieces")
             p.drawRightString(555, y, "Sadaram")
             y -= 10
             p.line(40, y, 555, y)
@@ -504,12 +506,14 @@ def labour_details_pdf(code):
         date_text = format_date(r[0])
         buyer = (r[1] or "")[:34]
         stone = (r[2] or "")[:10]
-        sadaram = float(r[3] or 0)
+        pieces = int(r[3] or 0)
+        sadaram = float(r[4] or 0)
         total_sadaram += sadaram
 
         p.drawString(40, y, date_text)
         p.drawString(150, y, buyer)
-        p.drawString(380, y, stone)
+        p.drawString(360, y, stone)
+        p.drawString(430, y, str(pieces))
         p.drawRightString(555, y, f"{sadaram:.3f}")
         y -= 16
 
