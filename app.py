@@ -390,7 +390,7 @@ def labour_details(code):
     conn = get_db()
     c = conn.cursor()
     c.execute("""
-        SELECT date, vehicle_no, buyer_name, sadaram, stone_size
+        SELECT date, '-' AS vehicle_no, buyer_name, sadaram, stone_size
         FROM truck_sales
         WHERE labour_group_code=%s
         ORDER BY date DESC, id DESC
