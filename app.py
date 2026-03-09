@@ -393,7 +393,7 @@ def labour_details(code):
     conn = get_db()
     c = conn.cursor()
     c.execute("""
-        SELECT date, '-' AS vehicle_no, buyer_name, sadaram, stone_size
+        SELECT date, buyer_name, stone_size, sadaram
         FROM truck_sales
         WHERE labour_group_code=%s
         ORDER BY date DESC, id DESC
@@ -422,7 +422,7 @@ def labour_details_pdf(code):
     conn = get_db()
     c = conn.cursor()
     c.execute("""
-        SELECT date, '-' AS vehicle_no, buyer_name, sadaram, stone_size
+        SELECT date, buyer_name, stone_size, sadaram
         FROM truck_sales
         WHERE labour_group_code=%s
         ORDER BY date DESC, id DESC
@@ -445,9 +445,8 @@ def labour_details_pdf(code):
     y -= 26
     p.setFont("Helvetica-Bold", 10)
     p.drawString(40, y, "Date")
-    p.drawString(120, y, "Vehicle")
-    p.drawString(190, y, "Buyer")
-    p.drawString(360, y, "Stone")
+    p.drawString(150, y, "Buyer")
+    p.drawString(380, y, "Stone")
     p.drawRightString(555, y, "Sadaram")
 
     y -= 10
@@ -463,9 +462,8 @@ def labour_details_pdf(code):
             y = height - 40
             p.setFont("Helvetica-Bold", 10)
             p.drawString(40, y, "Date")
-            p.drawString(120, y, "Vehicle")
-            p.drawString(190, y, "Buyer")
-            p.drawString(360, y, "Stone")
+            p.drawString(150, y, "Buyer")
+            p.drawString(380, y, "Stone")
             p.drawRightString(555, y, "Sadaram")
             y -= 10
             p.line(40, y, 555, y)
@@ -473,16 +471,14 @@ def labour_details_pdf(code):
             p.setFont("Helvetica", 10)
 
         date_text = format_date(r[0])
-        vehicle = (r[1] or "-")[:12]
-        buyer = (r[2] or "")[:28]
-        stone = (r[4] or "")[:10]
+        buyer = (r[1] or "")[:34]
+        stone = (r[2] or "")[:10]
         sadaram = float(r[3] or 0)
         total_sadaram += sadaram
 
         p.drawString(40, y, date_text)
-        p.drawString(120, y, vehicle)
-        p.drawString(190, y, buyer)
-        p.drawString(360, y, stone)
+        p.drawString(150, y, buyer)
+        p.drawString(380, y, stone)
         p.drawRightString(555, y, f"{sadaram:.3f}")
         y -= 16
 
