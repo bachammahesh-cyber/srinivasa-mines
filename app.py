@@ -6,6 +6,8 @@ import os
 import psycopg2
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 app = Flask(__name__)
 app.secret_key = "srinivasa-secret"
@@ -70,6 +72,34 @@ def init_db():
     conn.close()
 
 init_db()
+
+
+def resolve_telugu_font():
+    font_name = "Helvetica"
+    bold_font_name = "Helvetica-Bold"
+    candidates = [
+        os.path.join("assets", "fonts", "NotoSansTelugu-Regular.ttf"),
+        os.path.join("assets", "fonts", "NotoSansTelugu.ttf"),
+        os.path.join("assets", "fonts", "Nirmala.ttf"),
+        "/usr/share/fonts/truetype/noto/NotoSansTelugu-Regular.ttf",
+        "/usr/share/fonts/noto/NotoSansTelugu-Regular.ttf",
+    ]
+
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                if "Telugu-Regular" not in pdfmetrics.getRegisteredFontNames():
+                    pdfmetrics.registerFont(TTFont("Telugu-Regular", path))
+                # Reuse the same unicode-capable font for bold text too.
+                if "Telugu-Bold" not in pdfmetrics.getRegisteredFontNames():
+                    pdfmetrics.registerFont(TTFont("Telugu-Bold", path))
+                font_name = "Telugu-Regular"
+                bold_font_name = "Telugu-Bold"
+                break
+            except Exception:
+                continue
+
+    return font_name, bold_font_name
 
 
 # ---------------- LOGIN ----------------
@@ -432,18 +462,19 @@ def labour_details_pdf(code):
 
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
+    _, height = A4
+    body_font, heading_font = resolve_telugu_font()
 
     y = height - 40
-    p.setFont("Helvetica-Bold", 14)
+    p.setFont(heading_font, 14)
     p.drawString(40, y, f"Labour Group Report - {groups[code]} ({code})")
 
     y -= 24
-    p.setFont("Helvetica", 10)
+    p.setFont(body_font, 10)
     p.drawString(40, y, f"Generated on: {datetime.now().strftime('%d-%m-%Y %H:%M')}")
 
     y -= 26
-    p.setFont("Helvetica-Bold", 10)
+    p.setFont(heading_font, 10)
     p.drawString(40, y, "Date")
     p.drawString(150, y, "Buyer")
     p.drawString(380, y, "Stone")
@@ -453,14 +484,14 @@ def labour_details_pdf(code):
     p.line(40, y, 555, y)
     y -= 16
 
-    p.setFont("Helvetica", 10)
+    p.setFont(body_font, 10)
     total_sadaram = 0.0
 
     for r in rows:
         if y < 60:
             p.showPage()
             y = height - 40
-            p.setFont("Helvetica-Bold", 10)
+            p.setFont(heading_font, 10)
             p.drawString(40, y, "Date")
             p.drawString(150, y, "Buyer")
             p.drawString(380, y, "Stone")
@@ -468,7 +499,7 @@ def labour_details_pdf(code):
             y -= 10
             p.line(40, y, 555, y)
             y -= 16
-            p.setFont("Helvetica", 10)
+            p.setFont(body_font, 10)
 
         date_text = format_date(r[0])
         buyer = (r[1] or "")[:34]
@@ -486,7 +517,7 @@ def labour_details_pdf(code):
         p.showPage()
         y = height - 60
 
-    p.setFont("Helvetica-Bold", 11)
+    p.setFont(heading_font, 11)
     p.line(40, y, 555, y)
     y -= 18
     p.drawRightString(555, y, f"Total Sadaram: {total_sadaram:.3f}")
