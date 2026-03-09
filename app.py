@@ -377,6 +377,55 @@ def labour_dashboard():
     return render_template("labour_dashboard.html", groups=groups_list)
 
 
+# ---------------- LABOUR DETAILS ----------------
+@app.route("/labour-details/<code>")
+@login_required
+def labour_details(code):
+    valid_codes = {"SV", "LK", "KD", "KP"}
+    code = code.upper()
+
+    if code not in valid_codes:
+        return redirect("/labour-dashboard")
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+        SELECT date, vehicle_no, buyer_name, sadaram, stone_size
+        FROM truck_sales
+        WHERE labour_group_code=%s
+        ORDER BY date DESC, id DESC
+    """, (code,))
+    rows = c.fetchall()
+    conn.close()
+
+    return render_template("labour_details.html", rows=rows)
+
+
+# ---------------- RESET LABOUR ADVANCE ----------------
+@app.route("/reset-labour/<code>")
+@login_required
+def reset_labour(code):
+    if session.get("role") != "owner":
+        return redirect("/labour-dashboard")
+
+    valid_codes = {"SV", "LK", "KD", "KP"}
+    code = code.upper()
+
+    if code not in valid_codes:
+        return redirect("/labour-dashboard")
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+        DELETE FROM labour_payments
+        WHERE labour_group_code=%s AND type='advance'
+    """, (code,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/labour-dashboard")
+
+
 # ---------------- FULL EDIT ENTRY ----------------
 @app.route("/edit-entry/<int:entry_id>", methods=["GET", "POST"])
 @login_required
@@ -464,4 +513,3 @@ def delete_entry(entry_id):
     conn.close()
 
     return redirect("/sales-report")
-
