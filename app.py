@@ -68,6 +68,13 @@ def init_db():
     );
     """)
 
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS labour_resets(
+        labour_group_code TEXT PRIMARY KEY,
+        last_sale_id INTEGER DEFAULT 0
+    );
+    """)
+
     conn.commit()
     conn.close()
 
@@ -100,6 +107,16 @@ def resolve_telugu_font():
                 continue
 
     return font_name, bold_font_name
+
+
+def get_labour_reset_cutoff(cursor, code):
+    cursor.execute("""
+        SELECT COALESCE(last_sale_id, 0)
+        FROM labour_resets
+        WHERE labour_group_code=%s
+    """, (code,))
+    row = cursor.fetchone()
+    return row[0] if row else 0
 
 
 # ---------------- LOGIN ----------------
@@ -384,11 +401,13 @@ def labour_dashboard():
     groups_list = []
 
     for code, name in groups.items():
+        cutoff_id = get_labour_reset_cutoff(c, code)
+
         c.execute("""
             SELECT COALESCE(SUM(sadaram),0)
             FROM truck_sales
-            WHERE labour_group_code=%s
-        """, (code,))
+            WHERE labour_group_code=%s AND id > %s
+        """, (code, cutoff_id))
         sadaram = c.fetchone()[0]
 
         c.execute("""
@@ -422,12 +441,13 @@ def labour_details(code):
 
     conn = get_db()
     c = conn.cursor()
+    cutoff_id = get_labour_reset_cutoff(c, code)
     c.execute("""
         SELECT date, buyer_name, stone_size, pieces, sadaram
         FROM truck_sales
-        WHERE labour_group_code=%s
+        WHERE labour_group_code=%s AND id > %s
         ORDER BY date DESC, id DESC
-    """, (code,))
+    """, (code, cutoff_id))
     rows = c.fetchall()
     conn.close()
 
@@ -451,12 +471,13 @@ def labour_details_pdf(code):
 
     conn = get_db()
     c = conn.cursor()
+    cutoff_id = get_labour_reset_cutoff(c, code)
     c.execute("""
         SELECT date, buyer_name, stone_size, pieces, sadaram
         FROM truck_sales
-        WHERE labour_group_code=%s
+        WHERE labour_group_code=%s AND id > %s
         ORDER BY date DESC, id DESC
-    """, (code,))
+    """, (code, cutoff_id))
     rows = c.fetchall()
     conn.close()
 
@@ -553,6 +574,21 @@ def reset_labour(code):
 
     conn = get_db()
     c = conn.cursor()
+
+    c.execute("""
+        SELECT COALESCE(MAX(id), 0)
+        FROM truck_sales
+        WHERE labour_group_code=%s
+    """, (code,))
+    last_sale_id = c.fetchone()[0]
+
+    c.execute("""
+        INSERT INTO labour_resets (labour_group_code, last_sale_id)
+        VALUES (%s, %s)
+        ON CONFLICT (labour_group_code)
+        DO UPDATE SET last_sale_id=EXCLUDED.last_sale_id
+    """, (code, last_sale_id))
+
     c.execute("""
         DELETE FROM labour_payments
         WHERE labour_group_code=%s AND type='advance'
