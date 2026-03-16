@@ -55,8 +55,15 @@ def init_db():
         total_amount DOUBLE PRECISION,
         paid DOUBLE PRECISION,
         balance DOUBLE PRECISION,
-        remarks TEXT
+        remarks TEXT,
+        show_in_credit_report BOOLEAN DEFAULT TRUE
     );
+    """)
+
+    # Older databases may not have the credit visibility flag yet.
+    c.execute("""
+        ALTER TABLE truck_sales
+        ADD COLUMN IF NOT EXISTS show_in_credit_report BOOLEAN DEFAULT TRUE
     """)
 
     c.execute("""
@@ -257,6 +264,7 @@ def sales_report():
                stone_size, pieces, rate,
                sadaram, total_amount, paid, balance
         FROM truck_sales
+        WHERE COALESCE(labour_group_code, '') <> 'MANUAL'
         ORDER BY date DESC
     """)
 
@@ -301,12 +309,18 @@ def credit_report():
         SELECT id, date, buyer_name, balance
         FROM truck_sales
         WHERE balance > 0
+          AND COALESCE(show_in_credit_report, TRUE) = TRUE
         ORDER BY date ASC
     """)
     rows = c.fetchall()
 
     # -------- CALCULATE TOTAL DUE (DATABASE SIDE - BEST METHOD) --------
-    c.execute("SELECT SUM(balance) FROM truck_sales WHERE balance > 0")
+    c.execute("""
+        SELECT SUM(balance)
+        FROM truck_sales
+        WHERE balance > 0
+          AND COALESCE(show_in_credit_report, TRUE) = TRUE
+    """)
     total_due_result = c.fetchone()
     total_due = total_due_result[0] if total_due_result[0] else 0
 
@@ -331,7 +345,25 @@ def delete_credit(entry_id):
     conn = get_db()
     c = conn.cursor()
 
-    c.execute("DELETE FROM truck_sales WHERE id=%s", (entry_id,))
+    c.execute("""
+        SELECT labour_group_code
+        FROM truck_sales
+        WHERE id=%s
+    """, (entry_id,))
+    row = c.fetchone()
+
+    if row:
+        labour_group_code = row[0] or ""
+
+        if labour_group_code == "MANUAL":
+            c.execute("DELETE FROM truck_sales WHERE id=%s", (entry_id,))
+        else:
+            # Hide the credit from the credit report without deleting the sale.
+            c.execute("""
+                UPDATE truck_sales
+                SET show_in_credit_report=FALSE
+                WHERE id=%s
+            """, (entry_id,))
 
     conn.commit()
     conn.close()
