@@ -172,6 +172,11 @@ def dashboard():
     return render_template("home.html")
 
 
+@app.route("/health", methods=["GET", "HEAD"])
+def health():
+    return "OK", 200
+
+
 # ---------------- TRUCK ENTRY ----------------
 @app.route("/truck-entry", methods=["GET", "POST"])
 @login_required
